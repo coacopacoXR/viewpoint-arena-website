@@ -181,57 +181,93 @@ function updateMarquees(): void {
 }
 
 /** §4 [02]: four steps, pinned on ≥1024px. The counter scrubs 01→04 while the
- *  matching figure cross-fades in. Below 1024px — and after teardown — the
- *  section is exactly the plain stack the HTML already is. */
+ *  matching text and figure swap in.
+ *
+ *  One value — the active index — drives all three: the counter prints it, and
+ *  the panel it selects is the only opaque one. It flips at the centre of each
+ *  swap, which is the instant the outgoing panel reaches 0 opacity, so the
+ *  counter can never name a step that is not on screen.
+ *
+ *  The swap is sequential, not a cross-fade: the outgoing panel finishes
+ *  leaving before the incoming one starts arriving, so two steps' text can
+ *  never overlap at partial opacity. A short slide keeps the gap between them
+ *  from reading as a blink.
+ *
+ *  Below 1024px — and after teardown — the section is exactly the plain stack
+ *  the HTML already is. */
 function setupSteps(): void {
   const host = document.querySelector<HTMLElement>('[data-steps]');
   if (!host) return;
   const stage = host.querySelector<HTMLElement>('[data-steps-stage]');
   const counter = host.querySelector<HTMLElement>('[data-steps-counter]');
   const panels = gsap.utils.toArray<HTMLElement>('[data-step]', host);
-  if (!stage || panels.length < 2) return;
+  if (!stage || !counter || panels.length < 2) return;
 
-  if (counter) stepCounters.push({ el: counter, initial: counter.textContent ?? '' });
+  stepCounters.push({ el: counter, initial: counter.textContent ?? '' });
+
+  const last = panels.length - 1;
+  /** One swap in step units. The outgoing panel leaves over `HALF` of it. */
+  const SWAP = 0.3;
+  const HALF = SWAP / 2;
+  /** The incoming panel starts this much early, so it is at 0.25 opacity at
+   *  the instant the outgoing one reaches 0 — never above ~0.3 while both are
+   *  on screen, and never a fully empty frame at the boundary either. */
+  const LEAD = HALF * 0.25;
+  /** The timeline's own duration: boundary `i` sits at time `i`. */
+  const TOTAL = last + HALF - LEAD;
 
   const mm = gsap.matchMedia();
   mm.add('(min-width: 1024px)', () => {
     /* the component's CSS keys the stacked layout off this attribute */
     host.dataset.pinned = 'true';
-    gsap.set(panels.slice(1), { opacity: 0 });
+    gsap.set(panels, {
+      opacity: (index) => (index === 0 ? 1 : 0),
+      yPercent: (index) => (index === 0 ? 0 : 3),
+    });
 
-    /* one timeline unit per step; the cross-fades sit on the unit boundaries,
-       so the counter and the visible step always agree */
-    const FADE = 0.25;
+    let active = -1;
+    /** The single source of truth for counter, text and figure. */
+    const show = (index: number): void => {
+      const next = Math.min(last, Math.max(0, Math.floor(index)));
+      if (next === active) return;
+      active = next;
+      counter.textContent = String(next + 1).padStart(2, '0');
+    };
+    show(0);
+
+    const fromProgress = (progress: number): void => show(progress * TOTAL);
+
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: host,
         start: 'top top',
-        end: () => `+=${window.innerHeight * (panels.length - 1)}`,
+        end: () => `+=${window.innerHeight * last}`,
         pin: stage,
         scrub: true,
         invalidateOnRefresh: true,
-      },
-      onUpdate: () => {
-        if (!counter) return;
-        const index = Math.min(
-          panels.length - 1,
-          Math.round(tl.progress() * (panels.length - 1)),
-        );
-        counter.textContent = String(index + 1).padStart(2, '0');
+        onUpdate: (self) => fromProgress(self.progress),
+        onRefresh: (self) => fromProgress(self.progress),
       },
     });
 
-    for (let i = 1; i < panels.length; i += 1) {
-      const at = i - FADE / 2;
-      tl.to(panels[i - 1], { opacity: 0, duration: FADE, ease: 'none' }, at).to(
+    /* boundary i sits at time i: out over [i-HALF, i], in over [i-LEAD, i-LEAD+HALF] */
+    for (let i = 1; i <= last; i += 1) {
+      tl.to(
+        panels[i - 1],
+        { opacity: 0, yPercent: -3, duration: HALF, ease: 'none' },
+        i - HALF,
+      ).fromTo(
         panels[i],
-        { opacity: 1, duration: FADE, ease: 'none' },
-        at,
+        { opacity: 0, yPercent: 3 },
+        { opacity: 1, yPercent: 0, duration: HALF, ease: 'none', immediateRender: false },
+        i - LEAD,
       );
     }
 
     return () => {
       delete host.dataset.pinned;
+      active = -1;
+      show(0);
     };
   });
 }

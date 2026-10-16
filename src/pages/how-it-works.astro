@@ -1,11 +1,16 @@
 ---
 /**
- * /how-it-works — task 01 ships the hero only. Task 03 adds the inline SVG
- * architecture diagram (ArchDiagram.astro), one section per box, the parity
- * table, the ports panel and the health line.
+ * /how-it-works — the architecture drawing as the hero, then one section per
+ * box (CONTENT.md `/how-it-works`), the parity mini-table, the ports panel and
+ * the health line. Every box and port was checked against the app's
+ * docker-compose.yml; the mismatches found are listed in the task report.
  */
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
+import ArchDiagram from '../components/ArchDiagram.astro';
+import DocSection from '../components/DocSection.astro';
+import SpecTable from '../components/SpecTable.astro';
+import Limit from '../components/Limit.astro';
 import { PAGE_META } from '../lib/site';
 ---
 
@@ -20,5 +25,106 @@ import { PAGE_META } from '../lib/site';
     path="docker-compose.yml"
   />
 
-  <!-- task 03: ArchDiagram + the six sections + ports panel + health line -->
+  <div class="container hiw">
+    <div class="hiw__diagram">
+      <ArchDiagram />
+    </div>
+
+    <div class="hiw__sections">
+      <DocSection id="h1" num="1" title="Browser" anchor="" path="package.json">
+        <p>
+          Renders the model with React Three Fiber, imports GLB/glTF/OBJ/FBX/STL
+          directly and STEP/IGES/BREP through the server (or OpenCascade
+          WebAssembly as a fallback). Records the host's meeting audio in short
+          clips.
+        </p>
+      </DocSection>
+
+      <DocSection id="h2" num="2" title="Room server" anchor="partykit">
+        <p>
+          PartyKit's open-source server in its own container, bound to loopback
+          behind nginx. Presence, lead and follow, admission, and WebRTC call
+          signalling. Admissions and the scene live in a Docker volume.
+        </p>
+      </DocSection>
+
+      <DocSection id="h3" num="3" title="convert-service" anchor="convert-service">
+        <p>
+          Takes a STEP, IGES or BREP file, tessellates it once with the same
+          OpenCascade kernel and parameters the browser uses, and returns a
+          meshopt-compressed GLB with the same part tree. Each job runs in its
+          own process, so a file that crashes the kernel takes down one job,
+          not the service. Up to 200 MB, 15-minute deadline.
+        </p>
+        <SpecTable
+          caption="Parity · 800-part STEP, browser vs server"
+          label="Conversion parity, browser versus convert-service"
+          firstColLabel="Measure"
+          head={['', 'Browser', 'Server']}
+          rows={[
+            ['rows', '809', '809'],
+            ['parts', '800', '800'],
+            ['triangles', '92 644', '88 978'],
+          ]}
+        />
+        <p>
+          141 of 800 parts are conical faces the two OpenCascade builds segment
+          differently; no part moves by more than 0.0001 mm.
+        </p>
+      </DocSection>
+
+      <DocSection id="h4" num="4" title="capture-service" anchor="capture-service">
+        <p>
+          Whisper turns clips into a transcript; a local model through Ollama
+          (qwen2.5:7b by default) turns the transcript into cards. With an
+          NVIDIA GPU a meeting takes about 20 seconds; without one, a few
+          minutes.
+        </p>
+      </DocSection>
+
+      <DocSection id="h5" num="5" title="Database and backups" anchor="db">
+        <p>
+          Postgres with Supabase's REST and realtime layers for reviews,
+          sessions, cards and accounts. db-backup writes the database and the
+          model files every 24 hours and keeps the newest 14.
+        </p>
+      </DocSection>
+
+      <DocSection id="h6" num="6" title="Calls" anchor="coturn">
+        <p>
+          Video calls go directly between browsers on the same network; across
+          networks they relay through the bundled coturn.
+        </p>
+      </DocSection>
+
+      <Limit label="PORTS">
+        <p><strong>OPEN TO USERS:</strong> 443 (app) · 8443 (live rooms) · 3478 + relay range (TURN, if calls cross networks).<br /><strong>NOT NEEDED:</strong> any inbound connection to participants' machines.</p>
+      </Limit>
+
+      <p class="hiw__health"><code class="code">https://&lt;your-address&gt;/api/health</code> shows each part's status.</p>
+    </div>
+  </div>
 </Base>
+
+<style>
+  .hiw {
+    padding-block-end: var(--section-pad);
+  }
+
+  .hiw__diagram {
+    padding-block: var(--sp-32) var(--sp-48);
+    min-width: 0;
+  }
+
+  .hiw__sections {
+    display: grid;
+    gap: var(--sp-24);
+    max-width: 1100px;
+    min-width: 0;
+  }
+
+  .hiw__health {
+    color: var(--ink-2);
+    max-width: var(--measure);
+  }
+</style>

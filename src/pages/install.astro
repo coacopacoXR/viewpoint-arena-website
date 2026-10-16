@@ -1,12 +1,36 @@
 ---
 /**
- * /install — task 01 ships the hero only. Task 03 renders steps 1–10 from
- * CONTENT.md `/install` (sticky TOC, every command a Command block, every table
- * a SpecTable, limits as Limit).
+ * /install — sections 1–10 of the app's docs/INSTALL.md, transcribed
+ * faithfully (CONTENT.md `/install`): every table row, every command exactly
+ * as written, PowerShell vs Ubuntu tags. The two CONTENT.md exceptions apply:
+ * §10's CAD paragraph and the sign-in 3-column comparison.
+ * Prose paragraphs are single-line on purpose: Astro drops the whitespace
+ * between a line break and an inline element, which would glue words together.
  */
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
-import { PAGE_META } from '../lib/site';
+import Command from '../components/Command.astro';
+import SpecTable from '../components/SpecTable.astro';
+import Limit from '../components/Limit.astro';
+import DocSection from '../components/DocSection.astro';
+import Toc from '../components/install/Toc.astro';
+import { PAGE_META, SITE } from '../lib/site';
+
+const TOC = [
+  { id: 's1', label: '1 What you need' },
+  { id: 's2', label: '2 One-time setup (Windows)' },
+  { id: 's3', label: '3 Get the code' },
+  { id: 's4', label: '4 Run the installer' },
+  { id: 's5', label: '5 Open the app' },
+  { id: 's5b', label: '5b Tailscale' },
+  { id: 's6', label: '6 Try each feature' },
+  { id: 's6b', label: '6b A server for a team' },
+  { id: 's7', label: '7 Everyday commands' },
+  { id: 's7b', label: '7b Backups' },
+  { id: 's8', label: '8 Reset or remove' },
+  { id: 's9', label: '9 Troubleshooting' },
+  { id: 's10', label: '10 Known limits' },
+];
 ---
 
 <Base title={PAGE_META.install.title} description={PAGE_META.install.description}>
@@ -17,5 +41,356 @@ import { PAGE_META } from '../lib/site';
     path="docs/INSTALL.md"
   />
 
-  <!-- task 03: sections 1–10 of docs/INSTALL.md, TOC, SpecTables, Limits -->
+  <div class="container install">
+    <div class="install__grid grid">
+      <div class="install__toc">
+        <Toc items={TOC} />
+      </div>
+
+      <div class="install__body">
+        <DocSection id="s1" num="1" title="What you need" anchor="1">
+          <SpecTable
+            label="Requirements"
+            firstColLabel="Resource"
+            head={['', 'Minimum', 'Comfortable']}
+            rows={[
+              ['Memory', '16 GB', '32 GB'],
+              ['Free disk', '10 GB', '20 GB with local meeting capture'],
+              ['Processor', '4 cores', '8+ cores'],
+              ['Graphics card', 'not needed', 'an NVIDIA card with 8 GB+ for fast meeting capture'],
+            ]}
+          />
+          <p>Local meeting capture works without a graphics card, just slowly: a few minutes per meeting instead of about 20 seconds. Everything else in the app does not use the graphics card at all.</p>
+        </DocSection>
+
+        <DocSection id="s2" num="2" title="One-time setup (Windows)" anchor="2">
+          <p>Skip to <a href="#s3">step 3</a> on Linux; you need Docker Engine with the Compose plugin (<code class="code">docker compose version</code> must work) and <code class="code">git</code>, <code class="code">openssl</code> and <code class="code">curl</code>.</p>
+          <p><strong>a. Turn on WSL2 (the Linux layer Docker runs on).</strong> Open <strong>PowerShell as Administrator</strong> (right-click the Start button → Terminal (Admin)) and run:</p>
+          <Command lang="PowerShell" code="wsl --install -d Ubuntu-24.04" />
+          <p>Restart the computer when it asks. After the restart an "Ubuntu" window opens and asks you to pick a Linux user name and password; pick anything and remember the password.</p>
+          <p><strong>b. Install Docker Desktop</strong> from <a href="https://www.docker.com/products/docker-desktop/" target="_blank" rel="noopener noreferrer">https://www.docker.com/products/docker-desktop/</a> and start it. Then in Docker Desktop open <strong>Settings → Resources → WSL integration</strong>, switch on <strong>Ubuntu-24.04</strong>, and press <strong>Apply &amp; restart</strong>.</p>
+          <p><strong>c. Check it works.</strong> Open <strong>Ubuntu</strong> from the Start menu (every command from here on goes in that Ubuntu window, not in PowerShell) and run:</p>
+          <Command code="docker run --rm hello-world" />
+          <p>You should see "Hello from Docker!".</p>
+          <p><strong>d. Only if you have an NVIDIA graphics card:</strong> keep your normal Windows NVIDIA driver up to date; nothing else is needed on Windows. Check that Docker can see the card:</p>
+          <Command code="docker run --rm --gpus all nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi" />
+          <p>It should print a table naming your card. If it fails, answer <strong>no</strong> to the graphics card question in step 4; capture will still work, just more slowly.</p>
+        </DocSection>
+
+        <DocSection id="s3" num="3" title="Get the code" anchor="3">
+          <p>In the Ubuntu window:</p>
+          <Command
+            code={`git clone ${SITE.repo}.git ~/viewpoint-arena
+cd ~/viewpoint-arena`}
+          />
+          <p>(One line on purpose: a command split with a backslash breaks when copying adds a space after it.)</p>
+          <p>Keep it in your Linux home folder (<code class="code">~</code>) as above, not under <code class="code">/mnt/c/...</code>: the Windows drive is several times slower for Docker builds.</p>
+        </DocSection>
+
+        <DocSection id="s4" num="4" title="Run the installer" anchor="4">
+          <Command code="./install.sh" />
+          <p>It asks a few questions. Pressing <strong>Enter</strong> takes the suggested answer shown in brackets, and every suggested answer works. The ones worth thinking about:</p>
+          <SpecTable
+            label="Installer questions"
+            head={['Question', 'What to answer']}
+            rows={[
+              [
+                'How will people reach it',
+                `Enter (self-signed) to use this computer's name or network address; browsers show a certificate warning once per device. tailscale for a proper address like https://viewpoint.tail1a2b3c.ts.net with a real certificate: no warnings, and it works from home or another office too. See 5b. A real address with Tailscale first; the installer then asks for the machine name, your tailnet's name and an auth key, and skips the hostname question.`,
+              ],
+              [
+                'Who will open the app',
+                `Enter (this-computer) if only this computer will use it: the address is https://localhost. network to let a phone or colleagues on the same network join: the installer shows this computer's network address (e.g. 192.168.1.50) and uses it. name only if your company network already has a name for this computer. Don't make up a name: the installer refuses one that no browser could find.`,
+              ],
+              [
+                'Meeting capture',
+                'local to record meetings and get cards from AI on your own hardware (downloads about 5 GB once). Enter (mock) for a quick look with simulated cards and no download.',
+              ],
+              ['Database', 'Enter (bundled).'],
+              ['TURN relay', 'Enter (bundled).'],
+              ['GPU compose override', 'yes only if the nvidia-smi check in step 2d worked.'],
+            ]}
+          />
+          <p>After the last question it shows your answers and asks <strong>"Write these settings and build now?"</strong>. Press <strong>Enter</strong> to go ahead, or <strong>n</strong> to stop without changing anything and start again. (<strong>Ctrl+C</strong> also stops it at any question.)</p>
+          <p>Then it builds and starts everything. The first run takes 5 to 15 minutes (most of it is downloading; with <code class="code">local</code> capture, add the AI model download). It finishes with a box that says where to open it:</p>
+          <Command
+            caption="the installer's last box"
+            prompt=""
+            code={`══════════════════════════════════════════════════════════════
+  Viewpoint Arena is running. Open it at:
+
+      https://localhost/
+  ...`}
+          />
+          <p>If instead it stops with an error, see <a href="#s9">Troubleshooting</a> below; every exit explains what to change.</p>
+        </DocSection>
+
+        <DocSection id="s5" num="5" title="Open the app" anchor="5">
+          <p>Go to <strong>https://localhost/</strong> in Chrome or Edge on the same computer (or <code class="code">https://&lt;the address you typed&gt;/</code> from another computer on your network).</p>
+          <p>You will see a certificate warning, because the installer made its own certificate instead of buying one. Click <strong>Advanced → Continue to localhost (unsafe)</strong>. This is expected and only needed once per browser. To get rid of it, use <a href="#s5b">Tailscale</a> (next section).</p>
+        </DocSection>
+
+        <DocSection id="s5b" num="5b" title="A real address with Tailscale" anchor="5b">
+          <p>With this option the app gets an address like <code class="code">https://viewpoint.tail1a2b3c.ts.net</code> and a real certificate, so no device shows a warning. It also works away from the office network: anyone on your tailnet can join from home, and video calls go directly between their devices.</p>
+          <p><a href="https://tailscale.com" target="_blank" rel="noopener noreferrer">Tailscale</a> is a free (for small teams) private network between your own devices. The catch: <strong>everyone who opens the app needs the Tailscale app</strong>, signed in to your tailnet. For a team that already uses it, or for a small group you invite, that is two minutes per person.</p>
+          <p>Before running the installer:</p>
+          <ol class="install__list">
+            <li>Create a Tailscale account at <code class="code">https://login.tailscale.com</code> and install the Tailscale app on your own computer.</li>
+            <li>In the admin console, <strong>DNS</strong>: turn on <strong>MagicDNS</strong> and <strong>HTTPS Certificates</strong>. Note the <strong>tailnet DNS name</strong> at the top of that page; it looks like <code class="code">tail1a2b3c.ts.net</code>.</li>
+            <li><strong>Settings → Keys → Generate auth key</strong>. Leave "Ephemeral" off. Copy the key (it starts with <code class="code">tskey-auth-</code>); it is only shown once.</li>
+          </ol>
+          <p>Then run <code class="code">./install.sh</code>, choose <strong>tailscale</strong> at the first question, and give it a machine name (Enter for <code class="code">viewpoint</code>), the tailnet DNS name and the key. The installer adds a small <code class="code">tailscale</code> container that joins your tailnet under that name, gets the certificate, renews it by itself, and passes the traffic to the app. Nothing is opened to the internet.</p>
+          <p>Open <code class="code">https://viewpoint.&lt;your tailnet&gt;.ts.net/</code> on any device with Tailscale. The very first visit can take up to a minute while the certificate is fetched.</p>
+          <p>To let someone in: invite them to your tailnet from the admin console (<strong>Users → Invite</strong>), or share just this one machine with them (<strong>Machines → viewpoint → Share</strong>). They install the Tailscale app and sign in.</p>
+          <p>If the container shows "auth key expired" in <code class="code">docker compose logs tailscale</code>, generate a new key, re-run <code class="code">./install.sh</code> and paste it. Once the machine has joined, the key is no longer used.</p>
+        </DocSection>
+
+        <DocSection id="s6" num="6" title="Try each feature" anchor="6">
+          <p><strong>A design review (the database).</strong> In the lobby, type your name under <strong>Your name</strong>. Press <strong>+ New design review</strong>, give it a name (e.g. "Hinge test") and press <strong>Create</strong>. The review room opens in <strong>edit mode</strong>, with a yellow bar at the top. Press <strong>Import a model</strong> to open your own file, or <strong>Try a sample → Synth assembly</strong>. Then press <strong>Done</strong> (right end of the yellow bar) to start the meeting. The Share, People and Boardroom buttons only appear after Done.</p>
+          <p>Press <strong>← Lobby</strong> (top left): your review is listed with a picture of its model. Reload the page; it is still there.</p>
+          <p><strong>Live collaboration.</strong> In the room, press <strong>Share</strong>. It opens on a QR code for phones; the <strong>Copy link</strong> tab has the link. Paste the link into a private/incognito window (or a browser on another computer), type a different name and join. That window says <strong>"Waiting for the host to let you in."</strong> In the host window, a <strong>Waiting to join</strong> box appears: press <strong>Admit</strong>. Press <strong>People</strong> to see each other listed.</p>
+          <p><strong>Video call.</strong> In the host window press <strong>Boardroom</strong> (a monitor icon when the window is narrow). After a short countdown, both windows switch to the call view; allow camera and microphone when the browser asks. Press <strong>3D Arena</strong> to go back.</p>
+          <p><strong>Meeting capture</strong> (only with <code class="code">local</code> capture). In the host window, on the right, find the <strong>Live transcript</strong> panel and press <strong>Record</strong>. Unmute your microphone (the red microphone button at the bottom), then talk for half a minute about the design, for example: "Maria will increase the clearance to one millimetre and send the model to the supplier by Friday. The main risk is thermal expansion rubbing the headband." Your words appear in the transcript, about 10 seconds behind. Press <strong>Stop</strong>, then <strong>Generate cards</strong>. After a wait (about a minute with a graphics card, several minutes without) the panel says <strong>"3 insights added"</strong> (or however many) and the cards appear under <strong>Detected insights</strong> as risks, actions and rationale that you can approve, reject or edit. Wait until "Generating cards…" is gone before you end the meeting.</p>
+          <p><strong>Tracker.</strong> Press the red power button at the bottom (<strong>End Session</strong>): the meeting summary opens and the meeting's cards are sent to the tracker. Press <strong>Open Tracker →</strong> there, or <strong>Tracker</strong> in the lobby, to see every ended meeting and its cards across reviews. (The tracker stays empty until a meeting with at least one card has ended.)</p>
+          <p><strong>Health check.</strong> <code class="code">https://localhost/api/health</code> shows, for each part of the system, whether it is working.</p>
+        </DocSection>
+
+        <DocSection id="s6b" num="6b" title="Running it on a server, for a team" anchor="6b">
+          <p>Nothing is installed on anyone's laptop. The machine running Docker does all the work; everyone else just opens it in a browser:</p>
+          <ul class="install__list">
+            <li>the browsers record audio and send short clips to that machine;</li>
+            <li><strong>transcription (Whisper) and the AI extraction (qwen2.5:7b) run there</strong>, on its CPU and GPU;</li>
+            <li>the text, the cards and the database live there too.</li>
+          </ul>
+          <p>So put it on the beefiest machine available, not on the laptop of whoever chairs the meeting. On that machine: install Docker, follow steps 3 and 4, and answer its <strong>network address</strong> (or DNS name) at the hostname question. Everyone opens <code class="code">https://&lt;that address&gt;/</code>. A GPU in the server speeds up extraction for everybody; laptops only record and display.</p>
+          <p>What the server needs open to the people using it: <strong>443</strong> (the app), <strong>8443</strong> (live rooms) and, if calls cross networks, <strong>3478</strong> plus the relay range for TURN. What it does NOT need: any inbound connection to the participants' machines.</p>
+          <p>Nothing leaves that machine in a default install. Audio clips, transcripts, cards and the database all stay on it; data only goes outside if you choose a cloud option during install (OpenAI/Anthropic extraction, Cloudflare TURN, a Teams webhook).</p>
+          <Limit label="LIMIT">
+            <p>One current limit: only the host's browser records, mixing their microphone with the call audio, so remote voices arrive through the call rather than from each person's own microphone.</p>
+          </Limit>
+        </DocSection>
+
+        <DocSection id="s7" num="7" title="Everyday commands" anchor="7">
+          <p>Run these in the Ubuntu window from <code class="code">~/viewpoint-arena</code>:</p>
+          <SpecTable
+            label="Everyday commands"
+            head={['To', 'Run']}
+            rows={[
+              ['See what is running', 'docker compose ps'],
+              ['Stop everything (keeps all your data)', 'docker compose stop'],
+              ['Start it again', 'docker compose up -d'],
+              [
+                "Read a part's log",
+                'docker compose logs --tail 50 <name>, e.g. capture-service, convert-service, api, db',
+              ],
+              ['Change a setting', './install.sh again (see below)'],
+            ]}
+          />
+          <p>Docker Desktop must be running for any of these. It starts with Windows by default; the app comes back on its own when Docker does.</p>
+          <p><strong>Changing settings.</strong> Run <code class="code">./install.sh</code> again and answer differently, e.g. <code class="code">local</code> instead of <code class="code">mock</code> for capture. It is safe to repeat: your saved reviews, the database password and the downloaded AI model are kept, and the old settings files are backed up next to the new ones (<code class="code">.env.backup.&lt;date&gt;</code>).</p>
+        </DocSection>
+
+        <DocSection id="s7b" num="7b" title="Backups and restore" anchor="7b">
+          <p>The install backs itself up. The <code class="code">db-backup</code> service writes, every 24 hours and once when it starts:</p>
+          <ul class="install__list">
+            <li><code class="code">db-YYYYMMDD-HHMMSS.sql.gz</code>: the whole database (reviews, meetings, cards, accounts);</li>
+            <li><code class="code">models-YYYYMMDD-HHMMSS.tar.gz</code>: the imported 3D model files.</li>
+          </ul>
+          <p>They go into the <code class="code">db-backups</code> Docker volume, and the newest 14 of each are kept. Change that in <code class="code">.env</code>: <code class="code">BACKUP_INTERVAL_HOURS</code>, <code class="code">BACKUP_KEEP</code>, and <code class="code">BACKUP_MODELS=false</code> to skip the model files. Then run <code class="code">docker compose up -d</code>.</p>
+          <p><strong>Check it is working:</strong> <code class="code">docker compose logs db-backup</code> prints one <code class="code">backup ok: …</code> line per file. The admin console's health, and <code class="code">https://&lt;your-address&gt;/api/health</code>, report <code class="code">backup: ok</code> while the newest backup is recent.</p>
+          <p><strong>Copy them off the machine.</strong> A backup on the same disk does not survive the disk. For example, copy them to the current folder:</p>
+          <Command code={`docker compose run --rm --no-deps -v "$PWD":/out --entrypoint sh db-backup -c 'cp /backups/* /out/'`} />
+          <p><strong>Restore</strong> (this replaces the current database with the backup's):</p>
+          <Command
+            code={`docker compose run --rm --no-deps --entrypoint sh db-backup -c 'ls -1 /backups'   # pick one
+deploy/backup/restore.sh db-20260926-020000.sql.gz --yes`}
+          />
+        </DocSection>
+
+        <DocSection id="s8" num="8" title="Reset or remove" anchor="8">
+          <SpecTable
+            label="Reset or remove"
+            head={['To', 'Run']}
+            rows={[
+              ['Remove the app but keep your data', 'docker compose down'],
+              ['Delete everything, including all saved reviews and the AI model', 'docker compose down -v'],
+              [
+                'Also free the disk space used by the downloaded images',
+                "docker system prune -a (removes ALL unused Docker images on this computer, not only this app's)",
+              ],
+            ]}
+          />
+          <p>After <code class="code">down -v</code>, <code class="code">./install.sh</code> starts again from a clean slate.</p>
+        </DocSection>
+
+        <DocSection id="s9" num="9" title="Troubleshooting" anchor="9">
+          <SpecTable
+            label="Troubleshooting"
+            head={['What you see', 'What it means and what to do']}
+            rows={[
+              [
+                'Installer exits with "A port the stack needs is already in use" (exit 5)',
+                'Another program uses port 80, 443 or 8443 (often IIS, Skype, or another web server). Stop that program, or set HTTP_PORT / HTTPS_PORT / WSS_PORT in .env to free numbers and run ./install.sh again.',
+              ],
+              [
+                'Installer ends with "The stack did not answer" (exit 4)',
+                'Something failed to start. docker compose ps shows which part is not "healthy"; docker compose logs <name> says why.',
+              ],
+              ['"Permission denied" on ./install.sh', 'Run chmod +x install.sh once.'],
+              [
+                'Browser says "This site can\'t be reached"',
+                'Docker Desktop is not running, or the stack is stopped: docker compose up -d.',
+              ],
+              [
+                'Meeting capture says "returned 504 (capture_upstream_timeout)"',
+                'The AI model took longer than 10 minutes. Usually the graphics card is too small or busy: on a laptop, the screen and open apps share its memory. Close heavy apps (browsers with many tabs, games, video editors) and try again, or use a smaller model (CAPTURE_OLLAMA_MODEL in .env, then docker compose up -d).',
+              ],
+              [
+                'Capture says "transcriber_unavailable"',
+                'docker compose logs capture-service names the cause. The first recording downloads the speech model (~150 MB), so the computer needs internet that first time.',
+              ],
+              [
+                'Colleagues on the network cannot join',
+                "Use this computer's network address as the hostname (step 4), not localhost, and allow ports 443 and 8443 through the Windows firewall.",
+              ],
+              ['A video call connects only on the same network', 'See Known limits below.'],
+            ]}
+          />
+        </DocSection>
+
+        <DocSection id="s10" num="10" title="Known limits" anchor="10">
+          <Limit label="SAME NETWORK ONLY">
+            <p>A phone or colleague must be on the same local network as this machine. The share link (SHARE → QR / Copy Link) contains the hostname you gave the installer; if that is <code class="code">localhost</code>, only this computer can open it. Re-run <code class="code">./install.sh</code> and enter the machine's network address (e.g. <code class="code">192.168.1.50</code>) to fix it. For access from other networks, use the <code class="code">tailscale</code> choice (<a href="#s5b">section 5b</a>): everyone on your tailnet can join, wherever they are.</p>
+          </Limit>
+          <Limit label="ONE CERTIFICATE WARNING PER DEVICE">
+            <p>With the default <code class="code">self-signed</code> choice, every browser and every phone that opens the app for the first time shows a certificate warning that must be clicked through once. The <code class="code">tailscale</code> choice (<a href="#s5b">section 5b</a>) removes it, and so does mounting your own certificate (<code class="code">own</code>). A company-domain option with Let's Encrypt is planned.</p>
+          </Limit>
+          <Limit label="VIDEO CALLS ACROSS THE INTERNET">
+            <p>Two people on the same network, or on the same computer, connect directly, and that is tested. For people on different networks the call relays through the bundled TURN server, and that path has <strong>not</strong> been verified under Docker Desktop, whose network forwarding gets in the way. For calls between offices, run the stack on a Linux server with a public address and set <code class="code">TURN_EXTERNAL_IP</code> in <code class="code">.env</code> to it, or choose the Cloudflare TURN option in the installer.</p>
+          </Limit>
+          <Limit label="THE GRAPHICS CARD ON A LAPTOP">
+            <p>It also drives the screen, so open apps leave less room for the AI model and capture gets slower (see <a href="#s9">Troubleshooting</a>).</p>
+          </Limit>
+          <Limit label="VERY LARGE CAD FILES" path="lib/scene/derivedImport.ts">
+            <p>Very large CAD files. STEP, IGES and BREP uploads are converted once by convert-service on the install, and the room opens the GLB it makes. While it works, the importer shows a clock and an "Open in browser instead" button; if the conversion fails or the deployment has no convert-service, the browser tessellates the file itself, which is slow above roughly 100 MB and can fail above 150 MB. The limit for any file is 200 MB.</p>
+          </Limit>
+          <Limit label="ONSHAPE, TEAMCENTER AND MICROSOFT TEAMS">
+            <p>Connections need your own accounts and keys; the installer asks for them if you pick those options.</p>
+          </Limit>
+
+          <div class="signin">
+            <h3 class="signin__title t-h3">Sign-in is your choice</h3>
+            <p><code class="code">./install.sh</code> asks "How do people sign in?":</p>
+            <div class="signin__grid grid">
+              <div class="signin__col">
+                <p class="signin__head">No accounts</p>
+                <p>The default. Names are typed in the lobby. Access is the three things listed below.</p>
+              </div>
+              <div class="signin__col">
+                <p class="signin__head">Accounts on this install</p>
+                <p>Email and password. You choose whether anyone can create an account or only people you add. There is no mail server in the stack, so accounts are confirmed at once and there is no "forgot password" email yet.</p>
+              </div>
+              <div class="signin__col">
+                <p class="signin__head">Company single sign-on</p>
+                <p>Microsoft Entra ID, Google or Keycloak (any OpenID Connect provider through Keycloak's settings). Register the app with your provider using the redirect address <code class="code">https://&lt;your address&gt;/auth/v1/callback</code>. SAML (Okta, ADFS) is planned.</p>
+              </div>
+            </div>
+            <p>With 2 or 3, signing in replaces the front-door password. The name people see in a room comes from the account and is checked by the room server, so it cannot be faked. Each person gets a <strong>Your reviews</strong> list in the lobby showing the reviews they hosted or joined. You can also let people without an account join a room as a <strong>guest</strong>: they knock like anyone else, show as "Name (guest)", and can only enter the room they were invited to. Under the hood this is Supabase's sign-in service (GoTrue), which runs only when 2 or 3 is chosen.</p>
+            <p><strong>Without accounts</strong>, access is three separate things, and it is worth knowing which one does what:</p>
+            <ul class="install__list">
+              <li><strong>The front-door password</strong> (asked by <code class="code">./install.sh</code>, stored as a hash in <code class="code">ACCESS_PASSWORD_HASH</code>). Optional and empty by default, which leaves the app open exactly as before. It is one password for everyone, not per-person accounts: anyone with it gets in, and the app cannot tell one person from another. Names in a meeting are self-asserted. A deployment that needs real identity should sit behind its own SSO proxy.</li>
+              <li><strong>The room door.</strong> By default someone opening a room link waits until the host admits them ("Maria wants to join — Admit / Decline"). The host can switch a link to <em>Anyone with the link</em> from the invite popup. Until someone is admitted the server sends them nothing about the room — not the model, not the comments, not the transcript. A room with nobody left in it admits the next person to knock, so an empty room never locks itself, and reloading the page does not put you back in the queue.</li>
+              <li><strong>The admin passphrase</strong> (also <code class="code">./install.sh</code>, <code class="code">ADMIN_PASSPHRASE_HASH</code>). Optional. When set, <code class="code">/admin</code> manages every review on the install — show or hide it in the lobby, delete it — and the label fields. When it is not set, <code class="code">/admin</code> is closed rather than open. Changing either password means re-running <code class="code">./install.sh</code>; there is no button for it, because rotating a secret means rewriting <code class="code">.env</code> and restarting the API container.</li>
+              <li><strong>Activity.</strong> The admin screen also lists who admitted whom, who was refused, and who changed a link's join policy — grants only, nothing about what was said or shown in a meeting. It is a record of what the app did, not a tamper-proof ledger, and the names in it are self-asserted.</li>
+            </ul>
+          </div>
+
+          <Limit label="A REVIEW CAN BE HIDDEN FROM THE LOBBY">
+            <p>On the curate page, <em>Link only</em> keeps a review out of Saved Reviews while its link keeps working — useful when a deployment is shared by several teams.</p>
+          </Limit>
+        </DocSection>
+
+        <p class="install__closing">Stuck? Open an issue on <a href={`${SITE.repo}/issues`} target="_blank" rel="noopener noreferrer">GitHub</a> with the installer's exit code and <code class="code">docker compose ps</code> output.</p>
+      </div>
+    </div>
+  </div>
 </Base>
+
+<style>
+  .install {
+    padding-block-end: var(--section-pad);
+  }
+
+  .install__grid {
+    padding-block-start: var(--sp-32);
+  }
+
+  .install__toc {
+    --span: 3;
+    --span-md: 8;
+    min-width: 0;
+  }
+
+  .install__body {
+    --span: 9;
+    --span-md: 8;
+    min-width: 0;
+  }
+
+  .install__list {
+    display: grid;
+    gap: var(--sp-8);
+    padding-inline-start: var(--sp-24);
+    list-style: disc;
+  }
+
+  ol.install__list {
+    list-style: decimal;
+  }
+
+  .install__closing {
+    padding-block-start: var(--sp-48);
+    color: var(--ink-2);
+    max-width: var(--measure);
+  }
+
+  /* §10 sign-in: the 3-column comparison CONTENT.md asks for */
+  .signin {
+    display: grid;
+    gap: var(--sp-16);
+    padding-block-start: var(--sp-8);
+  }
+
+  .signin__title {
+    color: var(--ink);
+  }
+
+  .signin__grid {
+    border-block: var(--hairline) solid var(--rule);
+    padding-block: var(--sp-24);
+  }
+
+  .signin__col {
+    --span: 4;
+    --span-md: 8;
+    display: grid;
+    gap: var(--sp-8);
+    align-content: start;
+    min-width: 0;
+  }
+
+  .signin__head {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .signin__col p:not(.signin__head) {
+    color: var(--ink-2);
+  }
+</style>

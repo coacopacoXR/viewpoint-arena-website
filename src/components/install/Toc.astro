@@ -1,0 +1,125 @@
+---
+/**
+ * /install table of contents (DESIGN.md §6).
+ * ≥1024px: a sticky list, the section under the middle of the viewport
+ * highlighted by src/scripts/section-index.ts. Below that: a collapsible
+ * `<details>`, closed by default so the guide starts at step 1.
+ * The two lists are mutually hidden, so only one is ever in the a11y tree.
+ */
+export interface TocItem {
+  id: string;
+  label: string;
+}
+
+interface Props {
+  items: TocItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<nav class="toc" aria-label="On this page">
+  <details class="toc__details">
+    <summary class="toc__summary">Contents</summary>
+    <ul class="toc__list" role="list">
+      {items.map((item) => (
+        <li>
+          <a class="toc__link" href={`#${item.id}`}>{item.label}</a>
+        </li>
+      ))}
+    </ul>
+  </details>
+
+  <ul class="toc__list toc__list--sticky" role="list">
+    {items.map((item) => (
+      <li>
+        <a class="toc__link u-nolink" href={`#${item.id}`} data-index-link={item.id}>
+          {item.label}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<script>
+  import '../../scripts/section-index';
+</script>
+
+<style>
+  .toc {
+    min-width: 0;
+  }
+
+  .toc__details {
+    border-block: var(--hairline) solid var(--rule);
+  }
+
+  .toc__summary {
+    padding: var(--sp-12) 0;
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    text-transform: uppercase;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .toc__summary::marker {
+    color: var(--ink-2);
+  }
+
+  .toc__list {
+    display: grid;
+    gap: var(--sp-8);
+    margin: 0;
+    padding: var(--sp-12) 0 var(--sp-16);
+  }
+
+  .toc__list--sticky {
+    display: none;
+  }
+
+  .toc__link {
+    display: block;
+    padding: var(--sp-4) var(--sp-8);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    color: var(--ink-2);
+    border-inline-start: var(--hairline) solid transparent;
+    transition: color var(--dur-hover) var(--ease-out);
+  }
+
+  .toc__link:hover,
+  .toc__link:focus-visible {
+    color: var(--signal-ink);
+  }
+
+  /* the section being read reads as ink with a signal tick, like §4's index */
+  .toc__list--sticky .toc__link[aria-current='true'] {
+    color: var(--ink);
+    border-inline-start-color: var(--signal);
+  }
+
+  @media (min-width: 1024px) {
+    .toc {
+      position: sticky;
+      top: var(--scroll-pad);
+      align-self: start;
+    }
+
+    .toc__details {
+      display: none;
+    }
+
+    .toc__list--sticky {
+      display: grid;
+      padding-block: 0;
+      border-inline-start: var(--hairline) solid var(--rule);
+    }
+  }
+</style>

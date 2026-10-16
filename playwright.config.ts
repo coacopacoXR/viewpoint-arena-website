@@ -1,8 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * The layout test runs against a real production build served by `astro preview`,
- * because that is the only way to measure what a visitor actually gets.
+ * The layout test runs against a real production build, served statically by
+ * scripts/serve-dist.mjs — the same bytes a static host would hand a visitor.
+ * (`astro preview` allows only one instance per project, which would collide
+ * with a preview the operator already has open on another port.)
  * `SITE_BASE` is honoured so a sub-path deploy is testable too.
  */
 const PORT = Number(process.env.PORT ?? 4321);
@@ -28,7 +30,7 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: `npm run build && npm run preview -- --host ${HOST} --port ${PORT}`,
+    command: `npm run build && node scripts/serve-dist.mjs ${PORT}`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,

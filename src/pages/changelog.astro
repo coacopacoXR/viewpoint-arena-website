@@ -1,16 +1,162 @@
 ---
 /**
- * /changelog — task 01 ships the hero only. Task 03 copies the app's
- * CHANGELOG.md into src/content/ at prebuild and renders it here: version
- * headings in display type, Added/Changed as mono labels.
+ * /changelog — rendered from the committed copy of the app's CHANGELOG.md
+ * (scripts/sync-changelog.mjs refreshes it at prebuild when the sibling
+ * checkout exists).
+ *
+ * Parsed at build time: the preamble is dropped, every `## [x]` becomes a
+ * display heading with its version and label, and each version's body is
+ * rendered as markdown. `marked` is a devDependency used only here, at build
+ * time — Astro 7 exposes no public API for rendering a markdown string, and a
+ * build-time parser adds nothing to the runtime JS budget (§7). The changelog
+ * is first-party content from the app repo, so its HTML is trusted.
+ * Relative links inside it are rewritten to the app repo on GitHub.
  */
+import { marked } from 'marked';
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
-import { PAGE_META } from '../lib/site';
+import Display from '../components/Display.astro';
+import { PAGE_META, SITE } from '../lib/site';
+/* Vite inlines the file at build time, so the parse needs no fs access and no
+   assumption about the working directory. */
+import raw from '../content/CHANGELOG.md?raw';
+
+interface Release {
+  version: string;
+  label: string;
+  html: string;
+}
+
+interface Draft {
+  version: string;
+  label: string;
+  body: string[];
+}
+
+/** A relative href inside the changelog points at the app repo on GitHub. */
+function toRepo(href: string): string {
+  if (/^(https?:|#|\/\/|mailto:)/.test(href)) return href;
+  return `${SITE.repo}/blob/${SITE.ref}/${href.replace(/^\.?\//, '')}`;
+}
+
+const drafts: Draft[] = [];
+let current: Draft | null = null;
+
+for (const line of raw.split(/\r?\n/)) {
+  const head = /^##\s+\[([^\]]+)\]\s*(?:-\s*(.*))?$/.exec(line);
+  if (head) {
+    current = { version: head[1], label: (head[2] ?? '').trim(), body: [] };
+    drafts.push(current);
+    continue;
+  }
+  /* everything before the first `## [` is the preamble: dropped */
+  if (current) current.body.push(line);
+}
+
+const releases: Release[] = drafts.map((draft) => ({
+  version: draft.version,
+  label: draft.label,
+  html: marked
+    .parse(draft.body.join('\n').trim(), { async: false })
+    .replace(/href="([^"]+)"/g, (_match, href: string) => `href="${toRepo(href)}"`),
+}));
+
+const slug = (version: string): string => `rel-${version.replace(/[^\w.-]+/g, '-')}`;
 ---
 
 <Base title={PAGE_META.changelog.title} description={PAGE_META.changelog.description}>
   <PageHero label="CHANGELOG" lines={['What changed.']} path="CHANGELOG.md" />
 
-  <!-- task 03: releases rendered from src/content/CHANGELOG.md -->
+  <div class="container changelog">
+    {
+      releases.map((release) => (
+        <section class="release" aria-labelledby={slug(release.version)}>
+          <div class="release__head">
+            <Display as="h2" id={slug(release.version)} lines={[release.version]} />
+            {release.label && <p class="release__label">{release.label}</p>}
+          </div>
+          <div class="release__body" set:html={release.html} />
+        </section>
+      ))
+    }
+  </div>
 </Base>
+
+<style>
+  .changelog {
+    display: grid;
+    gap: var(--sp-72);
+    padding-block-end: var(--section-pad);
+  }
+
+  .release {
+    display: grid;
+    gap: var(--sp-24);
+    padding-block-start: var(--sp-32);
+    border-block-start: var(--hairline) solid var(--rule);
+    max-width: 1100px;
+    min-width: 0;
+  }
+
+  .release__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--sp-8) var(--sp-24);
+  }
+
+  .release__label {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  .release__body {
+    display: grid;
+    gap: var(--sp-16);
+    min-width: 0;
+  }
+
+  /* `### Added` / `### Changed` / `### Known limits` read as mono labels */
+  .release__body :global(h3) {
+    margin: 0;
+    padding-block-start: var(--sp-8);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .release__body :global(p),
+  .release__body :global(li) {
+    color: var(--ink-2);
+    max-width: var(--measure);
+  }
+
+  .release__body :global(strong) {
+    color: var(--ink);
+    font-weight: var(--t-h3-wght);
+  }
+
+  .release__body :global(ul) {
+    display: grid;
+    gap: var(--sp-8);
+    padding-inline-start: var(--sp-24);
+    list-style: disc;
+  }
+
+  .release__body :global(code) {
+    font-family: var(--font-mono);
+    font-size: var(--t-code);
+    background-color: var(--paper-2);
+    padding: 0 var(--sp-4);
+  }
+</style>

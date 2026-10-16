@@ -195,6 +195,18 @@ html[data-nav-open='true'] body {
   text-transform: uppercase;
 }
 
+/* Inline command / path inside prose: mono at code size on a paper-2 chip. */
+.code {
+  font-family: var(--font-mono);
+  font-size: var(--t-code);
+  font-weight: var(--t-code-wght);
+  letter-spacing: var(--t-code-ls);
+  background-color: var(--paper-2);
+  padding: 0 var(--sp-4);
+  border-radius: var(--r-box);
+  overflow-wrap: anywhere;
+}
+
 .measure {
   max-width: var(--measure);
 }

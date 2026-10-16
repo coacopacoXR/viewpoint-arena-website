@@ -1,0 +1,91 @@
+---
+/**
+ * One numbered section of a doc page (/install, /how-it-works — DESIGN.md §6).
+ * Hairline, a mono row with the section number and its provenance tag, the
+ * title, then the body. `id` is what the TOC links to.
+ */
+import SrcTag from './SrcTag.astro';
+
+interface Props {
+  /** Anchor the TOC links to, e.g. `s5b`. */
+  id: string;
+  /** `1`, `5b`, … shown in mono before the title. */
+  num: string;
+  title: string;
+  /** § anchor shown on the SrcTag. */
+  anchor: string;
+  /** File in the app repo the section transcribes. */
+  path?: string;
+}
+
+const { id, num, title, anchor, path = 'docs/INSTALL.md' } = Astro.props;
+---
+
+<section class="isection" id={id} aria-labelledby={`${id}-title`}>
+  <div class="isection__head">
+    <p class="isection__num">{num}</p>
+    <SrcTag path={path} anchor={anchor} />
+  </div>
+  <h2 class="isection__title t-h3" id={`${id}-title`}>{title}</h2>
+  <div class="isection__body">
+    <slot />
+  </div>
+</section>
+
+<style>
+  .isection {
+    padding-block: var(--sp-48) var(--sp-24);
+    border-block-start: var(--hairline) solid var(--rule);
+    min-width: 0;
+  }
+
+  .isection:first-child {
+    border-block-start: 0;
+    padding-block-start: var(--sp-24);
+  }
+
+  .isection__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sp-8) var(--sp-24);
+    padding-block-end: var(--sp-12);
+  }
+
+  .isection__num {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    color: var(--ink-2);
+  }
+
+  .isection__title {
+    color: var(--ink);
+    max-width: 30ch;
+  }
+
+  .isection__body {
+    display: grid;
+    gap: var(--sp-16);
+    padding-block-start: var(--sp-16);
+    min-width: 0;
+  }
+
+  /* prose sits in the 62ch measure; tables and commands take the column */
+  .isection__body > :is(p, ul, ol, aside) {
+    max-width: var(--measure);
+  }
+
+  .isection__body > :is(p, li) {
+    color: var(--ink-2);
+  }
+
+  .isection__body :is(strong, b) {
+    color: var(--ink);
+    font-weight: var(--t-h3-wght);
+  }
+</style>
