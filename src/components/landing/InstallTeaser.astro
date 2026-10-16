@@ -1,0 +1,94 @@
+---
+/**
+ * [06] INSTALL teaser (CONTENT.md): three commands, the requirements table,
+ * the tested-on note and the way through to /install.
+ */
+import Button from '../Button.astro';
+import Command from '../Command.astro';
+import Display from '../Display.astro';
+import SectionHead from '../SectionHead.astro';
+import SpecTable from '../SpecTable.astro';
+---
+
+<section class="inst section" id="install" aria-labelledby="inst-title">
+  <div class="container">
+    <SectionHead label="[06] INSTALL" fig="FIG. 06" path="docs/INSTALL.md" />
+
+    <div class="inst__title breakout">
+      <Display
+        as="h2"
+        id="inst-title"
+        reveal="up"
+        lines={['One script.', 'About fifteen minutes.']}
+      />
+    </div>
+
+    <div class="inst__grid grid">
+      <div class="inst__cmds" style="--span: 6; --span-md: 8;">
+        <Command lang="Ubuntu" code="git clone https://github.com/coacopacoXR/viewpoint-arena.git ~/viewpoint-arena" />
+        <Command lang="Ubuntu" code="cd ~/viewpoint-arena" />
+        <Command lang="Ubuntu" code="./install.sh" />
+        <p class="inst__under">
+          Press Enter for every suggested answer and it works. Then open https://localhost/.
+        </p>
+      </div>
+
+      <div class="inst__req" style="--span: 6; --span-md: 8;">
+        <SpecTable
+          label="Requirements"
+          head={['', 'Minimum', 'Comfortable']}
+          firstColLabel="Requirement"
+          rows={[
+            ['Memory', '16 GB', '32 GB'],
+            ['Free disk', '10 GB', '20 GB with local meeting capture'],
+            ['Processor', '4 cores', '8+ cores'],
+            [
+              'Graphics card',
+              'not needed',
+              'an NVIDIA card with 8 GB+ for fast meeting capture',
+            ],
+          ]}
+        />
+        <p class="inst__note">
+          Tested on Windows 11 with WSL2 and Docker Desktop. Linux works the same way.
+          macOS should work but hasn't been tested.
+        </p>
+        <p class="inst__cta">
+          <Button href="/install" variant="primary" arrow="→">Full install guide</Button>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .inst__title {
+    padding-block-start: var(--sp-32);
+    min-width: 0;
+  }
+
+  .inst__grid {
+    padding-block-start: var(--sp-48);
+    align-items: start;
+  }
+
+  .inst__cmds,
+  .inst__req {
+    display: grid;
+    gap: var(--sp-16);
+    align-content: start;
+    min-width: 0;
+  }
+
+  .inst__under,
+  .inst__note {
+    margin: 0;
+    color: var(--ink-2);
+    max-width: var(--measure);
+  }
+
+  .inst__cta {
+    margin: 0;
+    padding-block-start: var(--sp-8);
+  }
+</style>

@@ -118,3 +118,60 @@ test.describe('prefers-reduced-motion: reduce', () => {
     expect(hidden).toBe(0);
   });
 });
+
+/**
+ * Landing-page behaviour (task 02): the section index tracks the section under
+ * the middle of the viewport, [02] pins only on desktop, and the [04] counters
+ * settle on the value the HTML already holds.
+ */
+test.describe('home landing behaviour', () => {
+  test('the section index highlights the section being read', async ({ page: p }) => {
+    await p.setViewportSize({ width: 1440, height: 900 });
+    await p.goto('./');
+    await p.locator('#features').scrollIntoViewIfNeeded();
+
+    await expect
+      .poll(async () =>
+        p.evaluate(
+          () =>
+            document
+              .querySelector('[data-index-link="features"]')
+              ?.getAttribute('aria-current') ?? null,
+        ),
+      )
+      .toBe('true');
+  });
+
+  test('[02] pins on desktop and is a plain stack below 1024px', async ({ page: p }) => {
+    await p.setViewportSize({ width: 1440, height: 900 });
+    await p.goto('./');
+
+    await expect
+      .poll(async () =>
+        p.evaluate(
+          () => document.querySelector('[data-steps]')?.getAttribute('data-pinned') ?? null,
+        ),
+      )
+      .toBe('true');
+
+    await p.setViewportSize({ width: 768, height: 900 });
+
+    await expect
+      .poll(async () =>
+        p.evaluate(
+          () => document.querySelector('[data-steps]')?.hasAttribute('data-pinned') ?? false,
+        ),
+      )
+      .toBe(false);
+  });
+
+  test('[04] counters settle on the final value in the HTML', async ({ page: p }) => {
+    await p.setViewportSize({ width: 1440, height: 900 });
+    await p.goto('./');
+    await p.locator('#privacy').scrollIntoViewIfNeeded();
+
+    await expect
+      .poll(async () => p.locator('[data-count-to="8"]').textContent())
+      .toBe('8');
+  });
+});

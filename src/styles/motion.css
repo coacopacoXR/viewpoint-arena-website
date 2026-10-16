@@ -45,6 +45,10 @@ html.motion [data-reveal='lines'] .split-line {
 
 html.motion [data-reveal='lines'] .split-line-mask {
   display: block;
+  /* the mask clips at its box, but display type at lh 0.84 draws descenders
+     outside the line box: give the mask room and take it back outside */
+  padding-block: 0.16em;
+  margin-block: -0.16em;
 }
 
 /* --- Scrub fill: outline → ink (§4 hero line 2, §4 [05] the "0") --------- */

@@ -1,0 +1,204 @@
+---
+/**
+ * [03] FEATURES (CONTENT.md). Asymmetric editorial grid on desktop — spans
+ * 7/5, 5/7, 4/4/4, 7/5 — never a uniform card wall. §4: cards lift 2px and gain
+ * the signal glow on hover/focus.
+ */
+import Display from '../Display.astro';
+import Figure from '../Figure.astro';
+import SectionHead from '../SectionHead.astro';
+import { SHOT, pendingText } from '../../lib/assets';
+
+interface Card {
+  title: string;
+  body: string;
+  asset: string;
+  /** 12-col span at ≥1024px / 8-col span at 640–1023px. */
+  span: string;
+  spanMd: string;
+  /** Wide cards set the figure beside the text. */
+  split?: boolean;
+}
+
+const CARDS: Card[] = [
+  {
+    title: 'Laser and selection',
+    body: `Point at a part; it glows for everyone in the room, in the same blue as this sentence's links.`,
+    asset: 'laser',
+    span: '7',
+    spanMd: '4',
+    split: true,
+  },
+  {
+    title: 'Pins on parts',
+    body: `Pin a comment to the part it's about, not to a coordinate on a screenshot.`,
+    asset: 'pins',
+    span: '5',
+    spanMd: '4',
+  },
+  {
+    title: 'Lead and follow',
+    body: `One person leads, the room follows. Look around freely; the view comes back on its own.`,
+    asset: 'follow',
+    span: '5',
+    spanMd: '4',
+  },
+  {
+    title: 'Split screen',
+    body: `Your own view on the left, exactly what a colleague sees on the right.`,
+    asset: 'split',
+    span: '7',
+    spanMd: '4',
+    split: true,
+  },
+  {
+    title: 'Model Tree',
+    body: `Every part of the assembly, by name, as the file defines it. Select from the tree or from the model.`,
+    asset: 'tree',
+    span: '4',
+    spanMd: '4',
+  },
+  {
+    title: 'Sessions and variants',
+    body: `Each meeting is a session. Branch a variant, move parts with undo, then adopt it or drop it. The reasons are kept either way.`,
+    asset: 'variants',
+    span: '4',
+    spanMd: '4',
+  },
+  {
+    title: 'Meeting capture',
+    body: `Whisper transcribes; a local model through Ollama (qwen2.5:7b by default) writes risks, actions and rationale. You approve, reject or edit each card.`,
+    asset: 'meeting-cards',
+    span: '4',
+    spanMd: '8',
+  },
+  {
+    title: 'Boardroom',
+    body: `Video calls in the room, with a bundled TURN relay. Press 3D Arena to go back to the model.`,
+    asset: 'boardroom',
+    span: '7',
+    spanMd: '4',
+    split: true,
+  },
+  {
+    title: 'Tracker and minutes',
+    body: `Open actions follow you across sessions and reviews. Each meeting gets minutes.`,
+    asset: 'tracker',
+    span: '5',
+    spanMd: '4',
+  },
+];
+
+const SMALL_PRINT =
+  'AI-GUIDED FOCUS · DEMO AGENTS · LOBBY WITH LIVE 3D PREVIEWS · ADMIN CONSOLE · DAILY BACKUPS · ONSHAPE, TEAMCENTER AND TEAMS/SHAREPOINT CONNECTORS (YOUR OWN ACCOUNTS)';
+---
+
+<section class="features section" id="features" aria-labelledby="features-title">
+  <div class="container">
+    <SectionHead label="[03] FEATURES" fig="FIG. 03" path="README.md" />
+
+    <div class="features__title breakout">
+      <Display
+        as="h2"
+        id="features-title"
+        reveal="up"
+        lines={['Built for the part', "you're pointing at."]}
+      />
+    </div>
+
+    <div class="features__grid grid">
+      {
+        CARDS.map((card) => (
+          <article
+            class:list={['fcard', card.split && 'fcard--split']}
+            style={`--span: ${card.span}; --span-md: ${card.spanMd};`}
+          >
+            <Figure
+              class="fcard__fig"
+              name={card.asset}
+              pending={pendingText(card.asset)}
+              alt={card.title}
+              width={SHOT.width}
+              height={SHOT.height}
+            />
+            <div class="fcard__text">
+              <h3 class="fcard__name t-h3">{card.title}</h3>
+              <p class="fcard__body">{card.body}</p>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+
+    <p class="features__small">{SMALL_PRINT}</p>
+  </div>
+</section>
+
+<style>
+  .features__title {
+    padding-block-start: var(--sp-32);
+    min-width: 0;
+  }
+
+  .features__grid {
+    padding-block-start: var(--sp-48);
+    align-items: start;
+  }
+
+  .fcard {
+    display: grid;
+    gap: var(--sp-16);
+    padding: var(--sp-16);
+    border: var(--hairline) solid var(--rule);
+    border-radius: var(--r-box);
+    min-width: 0;
+    transition:
+      transform var(--dur-hover) var(--ease-out),
+      border-color var(--dur-hover) var(--ease-out),
+      box-shadow var(--dur-hover) var(--ease-out);
+  }
+
+  /* §4: cards lift 2px and gain the signal glow */
+  .fcard:hover,
+  .fcard:focus-within {
+    transform: translateY(-2px);
+    border-color: var(--signal);
+    box-shadow: var(--glow);
+  }
+
+  .fcard__fig,
+  .fcard__text {
+    min-width: 0;
+  }
+
+  .fcard__text {
+    display: grid;
+    gap: var(--sp-8);
+    align-content: start;
+  }
+
+  .fcard__body {
+    color: var(--ink-2);
+  }
+
+  /* wide cards put the figure beside the text */
+  @media (min-width: 1024px) {
+    .fcard--split {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: var(--gutter);
+      align-items: end;
+    }
+  }
+
+  .features__small {
+    margin: 0;
+    padding-block-start: var(--sp-32);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+</style>

@@ -49,6 +49,9 @@ const shell = prompt ?? (lang === 'PowerShell' ? 'PS C:\\>' : '$');
 <style>
   .cmd {
     margin: 0;
+    /* as a grid/flex item, a long command must never set our width;
+       `.cmd__pre` scrolls inside itself instead (§3) */
+    min-width: 0;
     background-color: var(--paper-2);
     border: var(--hairline) solid var(--rule);
     border-radius: var(--r-box);

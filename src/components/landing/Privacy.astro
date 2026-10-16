@@ -1,0 +1,113 @@
+---
+/**
+ * [05] NOTHING LEAVES (CONTENT.md, label `[05] PRIVACY`).
+ * §4: the outlined `0` fills with ink as it travels through the viewport.
+ */
+import Display from '../Display.astro';
+import SectionHead from '../SectionHead.astro';
+---
+
+<section class="privacy section" id="privacy" aria-labelledby="privacy-title">
+  <div class="container">
+    <SectionHead label="[05] PRIVACY" fig="FIG. 05" path="docs/INSTALL.md" anchor="6b" />
+
+    <div class="privacy__grid grid">
+      <p class="privacy__zero t-mega" data-scrub-fill style="--span: 3; --span-md: 2;">0</p>
+
+      <div class="privacy__title" style="--span: 9; --span-md: 6;">
+        <Display
+          as="h2"
+          id="privacy-title"
+          reveal="up"
+          lines={['bytes sent off the machine', 'by a default install.']}
+        />
+      </div>
+
+      <p class="privacy__body" style="--span: 5; --span-md: 8;" data-reveal="up">
+        Audio clips, transcripts, cards, model files and the database all stay on the
+        machine running Docker. Transcription and card extraction run there too, on its CPU
+        or GPU. The live room server runs locally in its own container; no Cloudflare
+        account.
+      </p>
+
+      <div class="privacy__choices" style="--span: 5; --span-md: 8;">
+        <p class="privacy__choiceslead">Data only goes outside if you choose it during install:</p>
+        <ul class="privacy__list">
+          <li>OpenAI or Anthropic for card extraction</li>
+          <li>Cloudflare TURN for calls</li>
+          <li>a Teams webhook</li>
+          <li>Onshape or Teamcenter, with your own accounts</li>
+        </ul>
+        <p class="privacy__aside">
+          THE FIRST RECORDING DOWNLOADS THE SPEECH MODEL (~150 MB) ONCE. THAT'S A DOWNLOAD,
+          NOT AN UPLOAD.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .privacy__grid {
+    padding-block-start: var(--sp-48);
+    align-items: start;
+    row-gap: var(--sp-48);
+  }
+
+  .privacy__zero {
+    margin: 0;
+    min-width: 0;
+  }
+
+  .privacy__title {
+    min-width: 0;
+    align-self: end;
+  }
+
+  .privacy__body {
+    color: var(--ink-2);
+    max-width: var(--measure);
+    min-width: 0;
+  }
+
+  .privacy__choices {
+    display: grid;
+    gap: var(--sp-16);
+    align-content: start;
+    min-width: 0;
+  }
+
+  .privacy__choiceslead {
+    margin: 0;
+    max-width: var(--measure);
+  }
+
+  .privacy__list {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* hairline list, like a drawing's note column */
+  .privacy__list li {
+    padding-block: var(--sp-12);
+    border-block-start: var(--hairline) solid var(--rule);
+    color: var(--ink-2);
+  }
+
+  .privacy__list li:last-child {
+    border-block-end: var(--hairline) solid var(--rule);
+  }
+
+  .privacy__aside {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    color: var(--ink);
+    max-width: 40ch;
+  }
+</style>

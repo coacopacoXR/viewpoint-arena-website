@@ -1,0 +1,109 @@
+---
+/**
+ * [07] WHAT'S NEXT (CONTENT.md): PLANNED / KNOWN LIMITS as two hairline lists.
+ */
+import Button from '../Button.astro';
+import Display from '../Display.astro';
+import SectionHead from '../SectionHead.astro';
+
+const PLANNED = [
+  "A company-domain address with Let's Encrypt",
+  'SAML sign-in (Okta, ADFS)',
+  'Levels of detail and progressive loading for very large assemblies',
+];
+
+const LIMITS = [
+  `Calls between different networks relay through TURN, and that path isn't verified under Docker Desktop yet.`,
+  'The default certificate is self-signed: one browser warning per device.',
+  'No speaker separation in transcripts, and the built-in 7B model writes weaker minutes than a cloud model.',
+  `Only the host's browser records the meeting.`,
+  `No "forgot password" email: there's no mail server in the stack.`,
+];
+---
+
+<section class="next section" id="next" aria-labelledby="next-title">
+  <div class="container">
+    <SectionHead label="[07] WHAT'S NEXT" fig="FIG. 07" path="docs/INSTALL.md" anchor="10" />
+
+    <div class="next__title breakout">
+      <Display as="h2" id="next-title" reveal="up" lines={['Honest about', 'the rough edges.']} />
+    </div>
+
+    <p class="next__lead t-lead" data-reveal="up">
+      This is a 0.1.0 preview. Accounts, variants and backups are new. What isn't there yet:
+    </p>
+
+    <div class="next__grid grid">
+      <div class="next__col" style="--span: 6; --span-md: 4;">
+        <h3 class="next__head">PLANNED</h3>
+        <ul class="next__list">
+          {PLANNED.map((item) => <li>{item}</li>)}
+        </ul>
+      </div>
+
+      <div class="next__col" style="--span: 6; --span-md: 4;">
+        <h3 class="next__head">KNOWN LIMITS</h3>
+        <ul class="next__list">
+          {LIMITS.map((item) => <li>{item}</li>)}
+        </ul>
+      </div>
+    </div>
+
+    <p class="next__cta">
+      <Button href="/changelog" variant="ghost" arrow="→">Full changelog</Button>
+    </p>
+  </div>
+</section>
+
+<style>
+  .next__title {
+    padding-block-start: var(--sp-32);
+    min-width: 0;
+  }
+
+  .next__lead {
+    padding-block-start: var(--sp-32);
+    color: var(--ink-2);
+    max-width: var(--measure);
+  }
+
+  .next__grid {
+    padding-block-start: var(--sp-48);
+    align-items: start;
+  }
+
+  .next__col {
+    min-width: 0;
+  }
+
+  .next__head {
+    margin: 0;
+    padding-block-end: var(--sp-12);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    color: var(--ink);
+  }
+
+  .next__list {
+    margin: 0;
+    padding: 0;
+  }
+
+  .next__list li {
+    padding-block: var(--sp-12);
+    border-block-start: var(--hairline) solid var(--rule);
+    color: var(--ink-2);
+  }
+
+  .next__list li:last-child {
+    border-block-end: var(--hairline) solid var(--rule);
+  }
+
+  .next__cta {
+    margin: 0;
+    padding-block-start: var(--sp-48);
+  }
+</style>

@@ -20,6 +20,7 @@
  *   data-scrub-fill               outline text that fills with ink on scroll
  *   data-count-from / -to         counter, final value already in the HTML
  *   data-marquee                  band whose speed follows scroll velocity
+ *   data-steps                    [02] pinned step stack, counter scrubs 01→04
  */
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -44,6 +45,7 @@ let raf: ((time: number) => void) | null = null;
 const splits: SplitText[] = [];
 const marquees: gsap.core.Tween[] = [];
 const counters: { el: HTMLElement; to: string }[] = [];
+const stepCounters: { el: HTMLElement; initial: string }[] = [];
 
 /* ------------------------------------------------------------------ helpers */
 
@@ -93,12 +95,16 @@ function setupReveals(): void {
      default puts `aria-label` on the original element and `aria-hidden` on the
      pieces, so the accessible name never changes (§5). */
   for (const el of gsap.utils.toArray<HTMLElement>('[data-reveal="lines"]')) {
+    /* SplitText derives that label from `textContent`, which joins block lines
+       without a space; `Display` sets the intended name, so put it back. */
+    const label = el.getAttribute('aria-label');
     const split = new SplitText(el, {
       type: 'lines',
       mask: 'lines',
       linesClass: 'split-line',
       autoSplit: true,
     });
+    if (label) el.setAttribute('aria-label', label);
     splits.push(split);
     gsap.from(split.lines, {
       yPercent: 105,
@@ -174,6 +180,62 @@ function updateMarquees(): void {
   }
 }
 
+/** §4 [02]: four steps, pinned on ≥1024px. The counter scrubs 01→04 while the
+ *  matching figure cross-fades in. Below 1024px — and after teardown — the
+ *  section is exactly the plain stack the HTML already is. */
+function setupSteps(): void {
+  const host = document.querySelector<HTMLElement>('[data-steps]');
+  if (!host) return;
+  const stage = host.querySelector<HTMLElement>('[data-steps-stage]');
+  const counter = host.querySelector<HTMLElement>('[data-steps-counter]');
+  const panels = gsap.utils.toArray<HTMLElement>('[data-step]', host);
+  if (!stage || panels.length < 2) return;
+
+  if (counter) stepCounters.push({ el: counter, initial: counter.textContent ?? '' });
+
+  const mm = gsap.matchMedia();
+  mm.add('(min-width: 1024px)', () => {
+    /* the component's CSS keys the stacked layout off this attribute */
+    host.dataset.pinned = 'true';
+    gsap.set(panels.slice(1), { opacity: 0 });
+
+    /* one timeline unit per step; the cross-fades sit on the unit boundaries,
+       so the counter and the visible step always agree */
+    const FADE = 0.25;
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: host,
+        start: 'top top',
+        end: () => `+=${window.innerHeight * (panels.length - 1)}`,
+        pin: stage,
+        scrub: true,
+        invalidateOnRefresh: true,
+      },
+      onUpdate: () => {
+        if (!counter) return;
+        const index = Math.min(
+          panels.length - 1,
+          Math.round(tl.progress() * (panels.length - 1)),
+        );
+        counter.textContent = String(index + 1).padStart(2, '0');
+      },
+    });
+
+    for (let i = 1; i < panels.length; i += 1) {
+      const at = i - FADE / 2;
+      tl.to(panels[i - 1], { opacity: 0, duration: FADE, ease: 'none' }, at).to(
+        panels[i],
+        { opacity: 1, duration: FADE, ease: 'none' },
+        at,
+      );
+    }
+
+    return () => {
+      delete host.dataset.pinned;
+    };
+  });
+}
+
 /* ------------------------------------------------------------------ Lenis */
 
 function startLenis(): void {
@@ -207,6 +269,7 @@ function start(): void {
     setupScrubFills();
     setupCounters();
     setupMarquees();
+    setupSteps();
   });
 
   ScrollTrigger.refresh();
@@ -224,6 +287,9 @@ function stop(): void {
 
   for (const { el, to } of counters) el.textContent = to;
   counters.length = 0;
+
+  for (const { el, initial } of stepCounters) el.textContent = initial;
+  stepCounters.length = 0;
 
   context?.revert();
   context = null;
@@ -251,5 +317,10 @@ if (reduceQuery.matches) {
   /* nothing to do: the HTML already holds every final value */
   root.classList.remove('motion');
 } else {
-  start();
+  /* SplitText measures lines, so wait for the self-hosted faces: splitting
+     before `font-display: swap` lands would re-split on the swap and leave
+     every tween aimed at detached nodes. */
+  void document.fonts.ready.then(() => {
+    if (!reduceQuery.matches) start();
+  });
 }

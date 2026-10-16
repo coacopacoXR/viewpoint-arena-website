@@ -2,9 +2,10 @@
 /**
  * Provenance tag — the site's revision block (DESIGN.md §0).
  * Renders `SRC · path §anchor · sha` and links to that file in the app repo.
- * With no `path` it cites the repository itself (used by the footer).
+ * With a `sha` but no `path` it cites the commit itself (`SRC · e09eb99 · date`).
+ * With neither it cites the repository (used by the footer).
  */
-import { githubBlobUrl } from '../lib/links';
+import { githubBlobUrl, githubCommitUrl } from '../lib/links';
 import { SITE } from '../lib/site';
 
 interface Props {
@@ -14,14 +15,18 @@ interface Props {
   anchor?: string;
   /** Short git sha the claim was measured on. */
   sha?: string;
+  /** Date the claim was measured on, shown after the sha. */
+  date?: string;
   class?: string;
 }
 
-const { path, anchor, sha, class: className } = Astro.props;
+const { path, anchor, sha, date, class: className } = Astro.props;
 
-const href = path ? githubBlobUrl(path, sha) : SITE.repo;
-const label = path ?? SITE.repoLabel;
-const text = `SRC · ${label}${anchor ? ` §${anchor}` : ''}${sha ? ` · ${sha}` : ''}`;
+const href = path ? githubBlobUrl(path, sha) : sha ? githubCommitUrl(sha) : SITE.repo;
+const label = path ?? sha ?? SITE.repoLabel;
+const text = `SRC · ${label}${anchor ? ` §${anchor}` : ''}${
+  path && sha ? ` · ${sha}` : ''
+}${date ? ` · ${date}` : ''}`;
 ---
 
 <a

@@ -56,6 +56,9 @@ const { label, head, rows, caption, firstColLabel, class: className } = Astro.pr
 <style>
   .spectable {
     margin: 0;
+    /* as a grid/flex item, the table's nowrap cells must never set our width;
+       the scroll region below handles narrow viewports (§3) */
+    min-width: 0;
   }
 
   .spectable__caption {

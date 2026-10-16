@@ -42,3 +42,8 @@ export function githubBlobUrl(path: string, sha?: string): string {
   const clean = path.replace(/^\/+/, '');
   return clean ? `${SITE.repo}/blob/${ref}/${clean}` : SITE.repo;
 }
+
+/** Provenance for a claim cited by commit only, e.g. `SRC e09eb99, 2026-10-16`. */
+export function githubCommitUrl(sha: string): string {
+  return `${SITE.repo}/commit/${sha.trim()}`;
+}

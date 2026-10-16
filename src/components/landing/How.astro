@@ -1,0 +1,180 @@
+---
+/**
+ * [02] HOW IT WORKS (CONTENT.md). Four steps.
+ * §4: pinned on ≥1024px with the step counter scrubbing 01→04 while the step
+ * (text + figure) cross-fades; a plain stack below 1024px and under reduced
+ * motion. The pin is built by src/scripts/motion.ts, which sets `data-pinned`
+ * on `[data-steps]` only while it is active — with JS off the CSS below never
+ * applies and the section is exactly this stack.
+ */
+import Display from '../Display.astro';
+import Figure from '../Figure.astro';
+import SectionHead from '../SectionHead.astro';
+import { SHOT, pendingText } from '../../lib/assets';
+
+const STEPS = [
+  {
+    title: 'Open a review',
+    body: `Create a design review in the lobby and import your file, or try the bundled sample. STEP, IGES and BREP are tessellated once on the server and handed to everyone as the same compressed GLB; the browser does it itself if the server can't.`,
+    asset: 'room-empty',
+  },
+  {
+    title: 'Let people in',
+    body: `Share a link or a QR code. Whoever opens it knocks; the host admits them. Until then the server sends them nothing about the room: not the model, not the comments, not the transcript.`,
+    asset: 'two-people',
+  },
+  {
+    title: 'Point and follow',
+    body: `Point at a part and it lights up for everyone. Press Lead and the room follows your view; drag to look around and you ease back to the leader two seconds after you let go. Free view leaves.`,
+    asset: 'follow',
+  },
+  {
+    title: 'Keep what was said',
+    body: `Record, and the install transcribes the meeting with Whisper. A local model turns it into risk, action and rationale cards. End the session and they go to the tracker.`,
+    asset: 'meeting-cards',
+  },
+] as const;
+---
+
+<section class="how section" id="how" aria-labelledby="how-title">
+  <div class="container">
+    <SectionHead label="[02] HOW IT WORKS" fig="FIG. 02" path="docs/INSTALL.md" anchor="6" />
+
+    <div class="how__title breakout">
+      <Display as="h2" id="how-title" reveal="up" lines={['Four steps.', 'No slides.']} />
+    </div>
+
+    <div class="how__steps" data-steps>
+      <div class="how__stage" data-steps-stage>
+        <p class="how__counter t-stat" data-steps-counter aria-hidden="true">01</p>
+
+        <ol class="how__list" role="list">
+          {
+            STEPS.map((step, i) => (
+              <li class="how__step" data-step>
+                <div class="how__text">
+                  <span class="how__num" aria-hidden="true">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <h3 class="how__steptitle t-h3">{step.title}</h3>
+                  <p class="how__stepbody">{step.body}</p>
+                </div>
+                <div class="how__fig">
+                  <Figure
+                    name={step.asset}
+                    pending={pendingText(step.asset)}
+                    alt={step.title}
+                    width={SHOT.width}
+                    height={SHOT.height}
+                  />
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .how__title {
+    padding-block-start: var(--sp-32);
+    min-width: 0;
+  }
+
+  .how__steps {
+    padding-block-start: var(--sp-48);
+  }
+
+  .how__stage {
+    display: grid;
+    gap: var(--sp-24);
+    min-width: 0;
+  }
+
+  /* the big scrubbed counter only exists in the pinned variant */
+  .how__counter {
+    display: none;
+    margin: 0;
+    color: var(--ink);
+  }
+
+  .how__list {
+    display: grid;
+    gap: var(--sp-72);
+    margin: 0;
+    padding: 0;
+  }
+
+  /* one row per step: its text beside its figure */
+  .how__step {
+    display: grid;
+    gap: var(--sp-24);
+    align-items: center;
+    min-width: 0;
+  }
+
+  @media (min-width: 1024px) {
+    .how__step {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: var(--gutter);
+    }
+  }
+
+  .how__text {
+    display: grid;
+    gap: var(--sp-12);
+    align-content: start;
+    min-width: 0;
+  }
+
+  .how__num {
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    color: var(--ink-2);
+  }
+
+  .how__stepbody {
+    color: var(--ink-2);
+    max-width: var(--measure);
+  }
+
+  .how__fig {
+    min-width: 0;
+  }
+
+  /* --- pinned variant (motion.ts sets data-pinned at ≥1024px only) -------- */
+  [data-steps][data-pinned='true'] .how__stage {
+    height: 100dvh;
+    grid-template-rows: auto minmax(0, 1fr);
+    align-content: start;
+    overflow: clip;
+  }
+
+  [data-steps][data-pinned='true'] .how__counter {
+    display: block;
+  }
+
+  [data-steps][data-pinned='true'] .how__list {
+    position: relative;
+    gap: 0;
+    min-height: 0;
+  }
+
+  /* every step covers the stage and cross-fades in place */
+  [data-steps][data-pinned='true'] .how__step {
+    position: absolute;
+    inset: 0;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--gutter);
+    will-change: opacity;
+  }
+
+  [data-steps][data-pinned='true'] .how__num {
+    display: none;
+  }
+</style>

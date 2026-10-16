@@ -1,0 +1,97 @@
+---
+/**
+ * [01] WHY IT EXISTS (CONTENT.md). §4: paragraphs reveal line by line.
+ */
+import Display from '../Display.astro';
+import SectionHead from '../SectionHead.astro';
+---
+
+<section class="why section" id="why" aria-labelledby="why-title">
+  <div class="container">
+    <SectionHead
+      label="[01] WHY IT EXISTS"
+      fig="FIG. 01"
+      path="README.md"
+      anchor="What it does"
+    />
+
+    <div class="why__title breakout">
+      <Display
+        as="h2"
+        id="why-title"
+        reveal="up"
+        lines={["A screenshot can't", 'answer back.']}
+      />
+    </div>
+
+    <div class="why__grid grid">
+      <div class="why__body">
+        <p class="why__para" data-reveal="lines">
+          Design reviews usually happen around a picture of the model: a slide, a screen
+          share, a PNG in a chat. Someone asks what's behind that bracket and the answer is
+          "I'll check."
+        </p>
+
+        <p class="why__para" data-reveal="lines">
+          Viewpoint Arena puts the model itself in the room. Everyone has it open, in a
+          browser, in 3D. You point at the part you mean and everyone sees which one. You
+          can follow the person talking, or wander off and come back.
+        </p>
+
+        <p class="why__para" data-reveal="lines">
+          What gets said doesn't vanish when the call ends. The meeting is transcribed and
+          turned into cards (risks, actions with an owner and a date, and the reasons
+          behind decisions) that you approve, edit or throw away.
+        </p>
+
+        <p class="why__note">
+          IT RUNS ON ONE MACHINE YOU CONTROL. A DEFAULT INSTALL SENDS NOTHING OFF IT.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .why__title {
+    padding-block-start: var(--sp-32);
+    min-width: 0;
+  }
+
+  .why__grid {
+    padding-block-start: var(--sp-48);
+  }
+
+  /* §1: body copy sits beside the big type, in 5–6 columns */
+  .why__body {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-24);
+    min-width: 0;
+  }
+
+  @media (min-width: 640px) {
+    .why__body {
+      grid-column: 2 / span 6;
+    }
+  }
+
+  .why__para {
+    color: var(--ink-2);
+    max-width: var(--measure);
+  }
+
+  .why__note {
+    margin: 0;
+    padding-block-start: var(--sp-16);
+    border-block-start: var(--hairline) solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    color: var(--ink);
+    max-width: 34ch;
+  }
+</style>

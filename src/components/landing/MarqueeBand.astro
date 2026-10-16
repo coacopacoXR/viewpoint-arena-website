@@ -1,0 +1,39 @@
+---
+/**
+ * MARQUEE (CONTENT.md). One band on the whole site (DESIGN.md §4, §5);
+ * velocity and direction come from src/scripts/motion.ts.
+ */
+import Marquee from '../Marquee.astro';
+
+const ITEMS = [
+  'GLB',
+  'glTF',
+  'OBJ',
+  'FBX',
+  'STL',
+  'STEP',
+  'IGES',
+  'BREP',
+  'WHISPER',
+  'OLLAMA',
+  'POSTGRES',
+  'PARTYKIT',
+  'OPENCASCADE',
+  'DOCKER COMPOSE',
+];
+
+const SR_TEXT =
+  'Opens GLB, glTF, OBJ, FBX, STL, STEP, IGES and BREP. Built on Whisper, Ollama, Postgres, PartyKit, OpenCascade and Docker Compose.';
+---
+
+<div class="band">
+  <Marquee items={ITEMS} srText={SR_TEXT} />
+</div>
+
+<style>
+  /* one band, edge to edge, hairlines above and below like a drawing strip */
+  .band {
+    padding-block: var(--sp-24);
+    border-block: var(--hairline) solid var(--rule);
+  }
+</style>

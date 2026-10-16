@@ -1,0 +1,50 @@
+---
+/**
+ * CLOSING CTA (CONTENT.md). The one place display type is centred (§1).
+ */
+import Button from '../Button.astro';
+import Display from '../Display.astro';
+import { SITE } from '../../lib/site';
+---
+
+<section class="closing section" aria-labelledby="closing-title">
+  <div class="container">
+    <Display
+      as="h2"
+      mega
+      centred
+      id="closing-title"
+      reveal="up"
+      lines={['Bring the model.']}
+    />
+    <p class="closing__sub t-lead" data-reveal="up">
+      Install it on one machine and run your next review in it.
+    </p>
+    <div class="closing__actions">
+      <Button href="/install" variant="primary" arrow="→">Install it</Button>
+      <Button href={SITE.repo} variant="ghost" arrow="↗">Star it on GitHub</Button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .closing {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .closing__sub {
+    padding-block-start: var(--sp-24);
+    color: var(--ink-2);
+    max-width: var(--measure);
+  }
+
+  .closing__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--sp-12);
+    padding-block-start: var(--sp-32);
+  }
+</style>

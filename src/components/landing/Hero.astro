@@ -1,0 +1,137 @@
+---
+/**
+ * HERO (CONTENT.md `/ HERO`, DESIGN.md §4: line reveal + outline fill on line 2).
+ * The model itself is wired in task 05 (`HeroModel`); until then the slot shows
+ * the pending mat at its final 1:1 size.
+ */
+import Button from '../Button.astro';
+import Display from '../Display.astro';
+import Figure from '../Figure.astro';
+import SrcTag from '../SrcTag.astro';
+import { HERO_MODEL, pendingText } from '../../lib/assets';
+import { SITE } from '../../lib/site';
+---
+
+<section class="hero container" aria-labelledby="hero-title">
+  <p class="hero__eyebrow">SELF-HOSTED 3D DESIGN REVIEW · 0.1.0 PREVIEW</p>
+
+  {/* §3: display type may break out to the full viewport — at --t-mega the
+      headline is wider than the content column by design */}
+  <div class="hero__title breakout">
+    <Display
+      as="h1"
+      mega
+      fill="page"
+      id="hero-title"
+      reveal="lines"
+      lines={[
+        { text: 'Review the model.' },
+        { text: 'Not the screenshot.', outline: true },
+      ]}
+    />
+  </div>
+
+  <div class="hero__grid grid">
+    <div class="hero__side" style="--span: 7; --span-md: 8;">
+      <p class="hero__lead t-lead" data-reveal="up">
+        Viewpoint Arena is a room where a small team opens the same 3D model, points at
+        parts, follows each other's view and talks it through. The meeting turns into
+        risks, actions and rationale, on your own hardware.
+      </p>
+
+      <div class="hero__actions">
+        <Button href="/install" variant="primary" arrow="→">Install it</Button>
+        <Button href={SITE.repo} variant="ghost" arrow="↗">Read the code</Button>
+      </div>
+
+      <ul class="hero__aside">
+        <li>GLB · glTF · OBJ · FBX · STL · STEP · IGES · BREP</li>
+        <li>ONE MACHINE · DOCKER · ONE INSTALL SCRIPT</li>
+        <li>NO CLOUD ACCOUNTS</li>
+      </ul>
+
+      <p class="hero__src">
+        <SrcTag path="README.md" />
+      </p>
+    </div>
+
+    <div class="hero__fig" style="--span: 5; --span-md: 8;">
+      <Figure
+        name="hero-model"
+        pending={pendingText('hero-model')}
+        alt="The model rendered with the app's selection glow, #0044AA."
+        width={HERO_MODEL.width}
+        height={HERO_MODEL.height}
+        caption="FIG. 00 — hero-model rendered with the app's selection glow, #0044AA."
+      />
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-block: var(--sp-48) var(--sp-32);
+  }
+
+  .hero__eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    text-transform: uppercase;
+    color: var(--ink-2);
+    padding-block-end: var(--sp-24);
+  }
+
+  .hero__title {
+    padding-block-start: var(--sp-24);
+    min-width: 0;
+  }
+
+  .hero__grid {
+    padding-block-start: var(--sp-48);
+    align-items: end;
+  }
+
+  .hero__side,
+  .hero__fig {
+    min-width: 0;
+  }
+
+  .hero__lead {
+    color: var(--ink-2);
+    max-width: var(--measure);
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-12);
+    padding-block: var(--sp-24);
+  }
+
+  .hero__aside {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+    list-style: none;
+    margin: 0;
+    padding: var(--sp-16) 0 0;
+    border-block-start: var(--hairline) solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    /* verbatim copy: `glTF` must survive */
+    text-transform: none;
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+
+  .hero__src {
+    margin: 0;
+    padding-block-start: var(--sp-16);
+  }
+</style>
