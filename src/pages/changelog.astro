@@ -1,0 +1,16 @@
+---
+/**
+ * /changelog — task 01 ships the hero only. Task 03 copies the app's
+ * CHANGELOG.md into src/content/ at prebuild and renders it here: version
+ * headings in display type, Added/Changed as mono labels.
+ */
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import { PAGE_META } from '../lib/site';
+---
+
+<Base title={PAGE_META.changelog.title} description={PAGE_META.changelog.description}>
+  <PageHero label="CHANGELOG" lines={['What changed.']} path="CHANGELOG.md" />
+
+  <!-- task 03: releases rendered from src/content/CHANGELOG.md -->
+</Base>

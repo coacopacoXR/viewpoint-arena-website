@@ -1,0 +1,127 @@
+---
+/**
+ * SpecTable (DESIGN.md §5). Requirements / everyday-commands tables: mono
+ * numerals, hairline rows, and the whole thing scrolls horizontally inside
+ * itself on mobile so it can never widen the page (§3).
+ */
+interface Props {
+  /** Accessible name for the scrollable region. */
+  label: string;
+  /** Column headers. `head[0]` may be '' when the first column is row headers. */
+  head: string[];
+  /** Rows; the first cell of each row becomes a `th scope="row"`. */
+  rows: string[][];
+  /** Visible caption above the table. */
+  caption?: string;
+  /** Visually-hidden header text used when `head[0]` is empty. */
+  firstColLabel?: string;
+  class?: string;
+}
+
+const { label, head, rows, caption, firstColLabel, class: className } = Astro.props;
+---
+
+<figure class:list={['spectable', className]}>
+  {caption && <figcaption class="spectable__caption">{caption}</figcaption>}
+  <div class="spectable__scroll" tabindex="0" role="region" aria-label={label}>
+    <table class="spectable__table">
+      <thead>
+        <tr>
+          {head.map((cell, i) => (
+            <th scope="col" class:list={[i === 0 && 'spectable__rh']}>
+              {cell === '' && firstColLabel
+                ? <span class="visually-hidden">{firstColLabel}</span>
+                : cell}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <tr>
+            {row.map((cell, i) =>
+              i === 0 ? (
+                <th scope="row" class="spectable__rh">{cell}</th>
+              ) : (
+                <td class="spectable__cell tnum">{cell}</td>
+              ),
+            )}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</figure>
+
+<style>
+  .spectable {
+    margin: 0;
+  }
+
+  .spectable__caption {
+    padding-block-end: var(--sp-8);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    text-transform: uppercase;
+    text-align: start;
+    color: var(--ink-2);
+  }
+
+  .spectable__scroll {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    border-block: var(--hairline) solid var(--rule);
+  }
+
+  .spectable__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: var(--t-code);
+    font-weight: var(--t-code-wght);
+    letter-spacing: var(--t-code-ls);
+    line-height: var(--t-code-lh);
+  }
+
+  .spectable__table th,
+  .spectable__table td {
+    padding: var(--sp-12) var(--sp-16) var(--sp-12) 0;
+    text-align: start;
+    vertical-align: top;
+    border-block-end: var(--hairline) solid var(--rule);
+    white-space: nowrap;
+  }
+
+  .spectable__table thead th {
+    color: var(--ink-2);
+    text-transform: uppercase;
+    font-size: var(--t-mono);
+    letter-spacing: var(--t-mono-ls);
+    font-weight: var(--t-mono-wght);
+  }
+
+  .spectable__rh {
+    color: var(--ink);
+    font-weight: var(--t-mono-wght);
+  }
+
+  .spectable__cell {
+    color: var(--ink);
+  }
+
+  .spectable__table tbody tr:last-child th,
+  .spectable__table tbody tr:last-child td {
+    border-block-end: 0;
+  }
+
+  /* long values may wrap rather than force a very wide scroll area */
+  @media (min-width: 640px) {
+    .spectable__table th,
+    .spectable__table td {
+      white-space: normal;
+    }
+  }
+</style>

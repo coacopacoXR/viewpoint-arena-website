@@ -1,0 +1,24 @@
+---
+/**
+ * /how-it-works — task 01 ships the hero only. Task 03 adds the inline SVG
+ * architecture diagram (ArchDiagram.astro), one section per box, the parity
+ * table, the ports panel and the health line.
+ */
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import { PAGE_META } from '../lib/site';
+---
+
+<Base
+  title={PAGE_META.howItWorks.title}
+  description={PAGE_META.howItWorks.description}
+>
+  <PageHero
+    label="ARCHITECTURE"
+    lines={['Where everything runs.']}
+    lead="Everything below runs as containers on one machine. Browsers only record and display."
+    path="docker-compose.yml"
+  />
+
+  <!-- task 03: ArchDiagram + the six sections + ports panel + health line -->
+</Base>

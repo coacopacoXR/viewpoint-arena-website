@@ -1,0 +1,52 @@
+---
+/**
+ * Provenance tag — the site's revision block (DESIGN.md §0).
+ * Renders `SRC · path §anchor · sha` and links to that file in the app repo.
+ * With no `path` it cites the repository itself (used by the footer).
+ */
+import { githubBlobUrl } from '../lib/links';
+import { SITE } from '../lib/site';
+
+interface Props {
+  /** Path inside the app repo, e.g. `docs/INSTALL.md`. */
+  path?: string;
+  /** Section shown after §, e.g. `What it does`. */
+  anchor?: string;
+  /** Short git sha the claim was measured on. */
+  sha?: string;
+  class?: string;
+}
+
+const { path, anchor, sha, class: className } = Astro.props;
+
+const href = path ? githubBlobUrl(path, sha) : SITE.repo;
+const label = path ?? SITE.repoLabel;
+const text = `SRC · ${label}${anchor ? ` §${anchor}` : ''}${sha ? ` · ${sha}` : ''}`;
+---
+
+<a
+  class:list={['srctag', className]}
+  href={href}
+  target="_blank"
+  rel="noopener noreferrer"
+>{text}</a>
+
+<style>
+  .srctag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    /* Paths are case-sensitive, so no text-transform here. */
+    text-transform: none;
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+
+  .srctag:hover,
+  .srctag:focus-visible {
+    color: var(--signal-ink);
+  }
+</style>

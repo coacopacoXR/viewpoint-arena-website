@@ -1,0 +1,178 @@
+/* ==========================================================================
+   Viewpoint Arena — design tokens
+   Single source of truth for DESIGN.md §1 (type), §2 (colour), §3 (grid/space)
+   and §4 (motion timing). Nothing outside these values is allowed.
+   ========================================================================== */
+
+:root {
+  color-scheme: light dark;
+
+  /* --- §1 Type: families (self-hosted, latin only) ---------------------- */
+  --font-display: 'Archivo Variable', 'Archivo', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'Cascadia Mono',
+    monospace;
+
+  /* --- §1 Type: scale --------------------------------------------------- */
+  /* mega — hero, closing CTA */
+  --t-mega: clamp(3.25rem, 14.5vw, 15rem);
+  --t-mega-lh: 0.84;
+  --t-mega-ls: -0.035em;
+  --t-mega-wdth: 68%;
+  --t-mega-wght: 820;
+
+  /* display — section titles */
+  --t-display: clamp(2.5rem, 8vw, 7.5rem);
+  --t-display-lh: 0.9;
+  --t-display-ls: -0.03em;
+  --t-display-wdth: 72%;
+  --t-display-wght: 780;
+
+  /* stat — perf numbers */
+  --t-stat: clamp(4rem, 16vw, 13rem);
+  --t-stat-lh: 0.8;
+  --t-stat-ls: -0.04em;
+  --t-stat-wdth: 62%;
+  --t-stat-wght: 800;
+
+  /* h3 — feature names, steps */
+  --t-h3: clamp(1.5rem, 2.6vw, 2.25rem);
+  --t-h3-lh: 1.05;
+  --t-h3-ls: -0.015em;
+  --t-h3-wdth: 85%;
+  --t-h3-wght: 650;
+
+  /* lead — intro paragraphs */
+  --t-lead: clamp(1.125rem, 1.6vw, 1.5rem);
+  --t-lead-lh: 1.35;
+  --t-lead-ls: -0.005em;
+  --t-lead-wdth: 100%;
+  --t-lead-wght: 420;
+
+  /* body — copy, max 62ch */
+  --t-body: clamp(1rem, 0.94rem + 0.28vw, 1.0625rem);
+  --t-body-lh: 1.55;
+  --t-body-ls: 0em;
+  --t-body-wdth: 100%;
+  --t-body-wght: 400;
+
+  /* mono — labels, tags, nav */
+  --t-mono: 0.75rem;
+  --t-mono-lh: 1.4;
+  --t-mono-ls: 0.04em;
+  --t-mono-wght: 500;
+
+  /* code — commands, tables */
+  --t-code: 0.875rem;
+  --t-code-lh: 1.6;
+  --t-code-ls: 0em;
+  --t-code-wght: 400;
+
+  --measure: 62ch; /* body copy column width (§1) */
+
+  /* --- §2 Colour: light (default) --------------------------------------- */
+  --paper: #f1eee6;
+  --paper-2: #e7e3d8;
+  --ink: #121211;
+  --ink-2: #4c4a45;
+  --rule: rgb(18 18 17 / 0.14);
+  --grid: rgb(0 68 170 / 0.06);
+  --signal: #0044aa;
+  --signal-ink: #0044aa;
+  --signal-glow: rgb(0 68 170 / 0.35);
+  /* §2: "white on it is 8.7:1" — the only text colour allowed on --signal */
+  --on-signal: #ffffff;
+
+  /* --- §3 Grid and space ------------------------------------------------ */
+  --cols: 4; /* 4 below 640, 8 at 640–1023, 12 at ≥1024 */
+  --gutter: clamp(12px, 1.6vw, 24px);
+  --page-margin: clamp(16px, 4vw, 56px); /* 16px at 360 wide */
+  --max-content: 1680px;
+  --section-pad: clamp(72px, 12vw, 168px);
+
+  /* spacing scale (§3): 4 8 12 16 24 32 48 72 112 168 */
+  --sp-4: 4px;
+  --sp-8: 8px;
+  --sp-12: 12px;
+  --sp-16: 16px;
+  --sp-24: 24px;
+  --sp-32: 32px;
+  --sp-48: 48px;
+  --sp-72: 72px;
+  --sp-112: 112px;
+  --sp-168: 168px;
+
+  /* chrome */
+  --nav-h: clamp(48px, 5.5vw, 60px);
+  --nav-top: var(--sp-16);
+  --scroll-pad: calc(var(--nav-h) + var(--nav-top) + var(--sp-24));
+  --r-pill: 999px;
+  --r-box: 0px; /* hairline boxes are square, like a drawing */
+  --hairline: 1px;
+
+  /* --- §4 Motion -------------------------------------------------------- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* expo-out: every entrance */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* power2.inOut: every scrub */
+  --dur-hover: 180ms; /* button wipe, link underline */
+  --dur-500: 500ms;
+  --dur-700: 700ms;
+  --dur-900: 900ms;
+  --stagger: 60ms; /* 0.05–0.08s */
+  --glow: 0 0 0 4px var(--signal-glow); /* the one shadow token (§2) */
+}
+
+/* §2 Dark mode — explicit toggle wins, otherwise follows the OS */
+[data-theme='light'] {
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --paper: #0f0f0e;
+  --paper-2: #181816;
+  --ink: #ede9e0;
+  --ink-2: #a8a398;
+  --rule: rgb(237 233 224 / 0.14);
+  --grid: rgb(110 155 255 / 0.06);
+  --signal: #0044aa;
+  --signal-ink: #7fa6ff;
+  --signal-glow: rgb(0 68 170 / 0.55);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #0f0f0e;
+    --paper-2: #181816;
+    --ink: #ede9e0;
+    --ink-2: #a8a398;
+    --rule: rgb(237 233 224 / 0.14);
+    --grid: rgb(110 155 255 / 0.06);
+    --signal: #0044aa;
+    --signal-ink: #7fa6ff;
+    --signal-glow: rgb(0 68 170 / 0.55);
+  }
+}
+
+/* §3 Columns: 4 → 8 → 12 */
+@media (min-width: 640px) {
+  :root {
+    --cols: 8;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --cols: 12;
+  }
+}
+
+/* §4 Reduced motion: collapse every duration to (almost) nothing so that
+   CSS transitions never animate, and JS keeps its own matchMedia gate. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-hover: 0ms;
+    --dur-500: 0ms;
+    --dur-700: 0ms;
+    --dur-900: 0ms;
+    --stagger: 0ms;
+  }
+}

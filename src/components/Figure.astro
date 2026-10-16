@@ -1,0 +1,168 @@
+---
+/**
+ * Figure (DESIGN.md §5, §7).
+ *
+ * Three states:
+ *  1. `src`   — a real capture: `<img>` with explicit width/height, lazy,
+ *               async decoding, optional srcset, and `eager` + high fetch
+ *               priority for the hero.
+ *  2. `video` — mp4, `preload="none"`, poster, plays only when in view and
+ *               never under reduced motion (src/scripts/video.ts).
+ *  3. neither — a `--paper-2` mat at the given aspect ratio with the mono text
+ *               `ASSET PENDING · <name>`. This is how sections get built before
+ *               the captures exist (task 04).
+ */
+import { withBase } from '../lib/links';
+
+interface Props {
+  /** Path under `public/`, e.g. `/assets/laser.webp`. */
+  src?: string;
+  /** Path under `public/`, e.g. `/assets/big-assembly.mp4`. */
+  video?: string;
+  /** Poster for `video`. */
+  poster?: string;
+  /** Required. Empty string only for a purely decorative figure. */
+  alt: string;
+  caption?: string;
+  /** Intrinsic pixel size — always set, so nothing shifts on load (§7). */
+  width: number;
+  height: number;
+  /** Asset name used by the pending mat, e.g. `meeting-cards`. */
+  name?: string;
+  /** Overrides the whole pending text, e.g. to add `NEEDS DOCKER`. */
+  pending?: string;
+  srcset?: string;
+  sizes?: string;
+  /** Hero only: load eagerly with a high fetch priority (§7). */
+  eager?: boolean;
+  class?: string;
+}
+
+const {
+  src,
+  video,
+  poster,
+  alt,
+  caption,
+  width,
+  height,
+  name,
+  pending,
+  srcset,
+  sizes,
+  eager = false,
+  class: className,
+} = Astro.props;
+
+const pendingText = pending ?? `ASSET PENDING · ${name ?? 'unnamed asset'}`;
+const ratio = `${width} / ${height}`;
+const assetUrl = (p: string) => withBase(p);
+---
+
+<figure class:list={['figure', className]} style={`--figure-ratio: ${ratio};`}>
+  <div class="figure__frame">
+    {src ? (
+      <img
+        src={assetUrl(src)}
+        alt={alt}
+        width={width}
+        height={height}
+        loading={eager ? 'eager' : 'lazy'}
+        decoding="async"
+        fetchpriority={eager ? 'high' : undefined}
+        srcset={srcset}
+        sizes={sizes}
+      />
+    ) : video ? (
+      <div class="figure__video" role="img" aria-label={alt}>
+        <video
+          muted
+          playsinline
+          loop
+          preload="none"
+          width={width}
+          height={height}
+          poster={poster ? assetUrl(poster) : undefined}
+          data-video-in-view
+        >
+          <source src={assetUrl(video)} type="video/mp4" />
+        </video>
+      </div>
+    ) : (
+      <div class="figure__mat" role="img" aria-label={alt}>
+        <span class="figure__pending">{pendingText}</span>
+      </div>
+    )}
+  </div>
+  {caption && <figcaption class="figure__caption">{caption}</figcaption>}
+</figure>
+
+<script>
+  import '../scripts/video';
+</script>
+
+<style>
+  .figure {
+    margin: 0;
+    min-width: 0;
+  }
+
+  .figure__frame {
+    aspect-ratio: var(--figure-ratio);
+    background-color: var(--paper-2);
+    border: var(--hairline) solid var(--rule);
+    border-radius: var(--r-box);
+    overflow: hidden;
+  }
+
+  .figure__frame img,
+  .figure__frame video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* §2: images sit on --paper-2 mats with a 1px --rule border */
+  .figure__mat {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    padding: var(--sp-16);
+    background-color: var(--paper-2);
+    /* faint blueprint cross, so an empty mat still reads as a drawing sheet */
+    background-image:
+      linear-gradient(to right, var(--grid) 0 var(--hairline), transparent var(--hairline)),
+      linear-gradient(to bottom, var(--grid) 0 var(--hairline), transparent var(--hairline));
+    background-position: center;
+    background-size:
+      33.334% 100%,
+      100% 33.334%;
+    background-repeat: no-repeat;
+  }
+
+  .figure__pending {
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    text-transform: uppercase;
+    color: var(--ink-2);
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+
+  .figure__caption {
+    padding-block-start: var(--sp-12);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    /* captions are sentences, not labels: no uppercase (§5 example) */
+    text-transform: none;
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+</style>

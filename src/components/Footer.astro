@@ -1,0 +1,162 @@
+---
+/**
+ * Footer (DESIGN.md §5, CONTENT.md FOOTER).
+ * Mega wordmark cropped by the page edge, two link columns, the status line and
+ * the promise that this site sends nothing either — which stays true: there is
+ * no analytics, no cookie and no third-party request anywhere in this project.
+ */
+import SrcTag from './SrcTag.astro';
+import { pageUrl } from '../lib/links';
+import {
+  FOOTER_COLUMNS,
+  FOOTER_LINE,
+  FOOTER_MONO,
+  FOOTER_WORDMARK,
+} from '../lib/site';
+---
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__top grid">
+      <nav class="footer__nav" aria-label="Footer" style="--span: 8; --span-md: 8;">
+        <ul class="footer__columns">
+          {
+            FOOTER_COLUMNS.map((column) => (
+              <li class="footer__column">
+                <p class="footer__heading">{column.heading}</p>
+                <ul class="footer__links">
+                  {column.links.map((link) => (
+                    <li>
+                      <a
+                        class="footer__link"
+                        href={link.external ? link.href : pageUrl(link.href)}
+                        target={link.external ? '_blank' : undefined}
+                        rel={link.external ? 'noopener noreferrer' : undefined}
+                      >
+                        {link.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <div class="footer__colophon" style="--span: 4; --span-md: 8;">
+        <p class="footer__line">{FOOTER_LINE}</p>
+        <p class="footer__mono">{FOOTER_MONO}</p>
+        <p class="footer__src">
+          <SrcTag />
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer__mark" aria-hidden="true">
+    <span class="footer__wordmark t-mega">{FOOTER_WORDMARK}</span>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    /* above the blueprint layer */
+    position: relative;
+    z-index: 1;
+    padding-block-start: var(--section-pad);
+    border-block-start: var(--hairline) solid var(--rule);
+    overflow: hidden;
+  }
+
+  .footer__top {
+    padding-block-end: var(--sp-72);
+    align-items: start;
+  }
+
+  .footer__columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-32) var(--sp-48);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .footer__column {
+    min-width: 10rem;
+  }
+
+  .footer__heading,
+  .footer__mono {
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  .footer__heading {
+    padding-block-end: var(--sp-12);
+    border-block-end: var(--hairline) solid var(--rule);
+    margin-block-end: var(--sp-12);
+  }
+
+  .footer__links {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-8);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .footer__link {
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+
+  .footer__link:hover,
+  .footer__link:focus-visible {
+    color: var(--signal-ink);
+  }
+
+  .footer__colophon {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-12);
+  }
+
+  .footer__line {
+    font-family: var(--font-mono);
+    font-size: var(--t-code);
+    font-weight: var(--t-code-wght);
+    line-height: var(--t-code-lh);
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+
+  .footer__src {
+    margin: 0;
+  }
+
+  /* §5: the wordmark is cropped by the page edge. `--t-mega` alone is too
+     narrow to reach the edge, so it is scaled up from the token and then cut
+     off at the right and the bottom of the sheet. */
+  .footer__mark {
+    --mark-scale: 1.45;
+    overflow: hidden;
+    padding-inline: var(--page-margin);
+  }
+
+  .footer__wordmark {
+    display: block;
+    white-space: nowrap;
+    font-size: calc(var(--t-mega) * var(--mark-scale));
+    /* run off the bottom of the sheet */
+    margin-block-end: -0.14em;
+    color: var(--ink);
+  }
+</style>

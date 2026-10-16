@@ -1,0 +1,30 @@
+/* ==========================================================================
+   Viewpoint Arena — self-hosted fonts (DESIGN.md §1)
+   Two files, latin subset only, no third-party request, font-display: swap.
+   The wdth axis file ("full" variant) is what lets one family run from a
+   condensed heavy display to a normal body face.
+   `unicode-range` is deliberately omitted: we ship a single subset per family
+   and want `·`, `§`, `→`, `↗` and `—` to try the real face before falling
+   back to the system stack.
+   ========================================================================== */
+
+/* Archivo Variable — display + body. wght 100–900, wdth 62–125. Preloaded. */
+@font-face {
+  font-family: 'Archivo Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  src: url('../../node_modules/@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2')
+    format('woff2-variations');
+}
+
+/* JetBrains Mono Variable — labels, tags, numbers, commands. */
+@font-face {
+  font-family: 'JetBrains Mono Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url('../../node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2')
+    format('woff2-variations');
+}

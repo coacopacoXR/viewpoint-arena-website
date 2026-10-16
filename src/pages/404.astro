@@ -1,0 +1,30 @@
+---
+/** 404 — copy from CONTENT.md `## 404`. */
+import Base from '../layouts/Base.astro';
+import Button from '../components/Button.astro';
+---
+
+<Base title="Nothing at this view." ogType="website">
+  <section class="notfound container" aria-labelledby="notfound-title">
+    <h1 id="notfound-title" class="notfound__title t-display">Nothing at this view.</h1>
+    <p class="notfound__action">
+      <Button href="/" variant="primary" arrow="→">Back to the start</Button>
+    </p>
+  </section>
+</Base>
+
+<style>
+  .notfound {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-24);
+    align-items: flex-start;
+    padding-block: var(--section-pad);
+    min-height: 50vh;
+  }
+
+  .notfound__title {
+    color: var(--ink);
+    max-width: 20ch;
+  }
+</style>

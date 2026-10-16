@@ -1,0 +1,76 @@
+---
+/**
+ * Marquee (DESIGN.md §4, §5). One instance on the whole site.
+ *
+ * The visible band is `aria-hidden` and duplicated so the loop is seamless;
+ * the nouns are announced once, as a sentence, to screen readers (CONTENT.md
+ * "Screen-reader text once"). Copy is verbatim — no uppercasing, `glTF` stays
+ * `glTF`. Without motion (JS off or reduced motion) the duplicate is dropped
+ * and the band wraps as a static line.
+ *
+ * motion.ts drives `data-marquee`: speed follows scroll velocity, direction
+ * flips with scroll direction.
+ */
+interface Props {
+  /** The nouns, in order, verbatim. */
+  items: string[];
+  /** The single accessible version of the band. */
+  srText: string;
+  separator?: string;
+  class?: string;
+}
+
+const { items, srText, separator = '·', class: className } = Astro.props;
+---
+
+<div class:list={['marqueewrap', className]}>
+  <p class="visually-hidden">{srText}</p>
+  <div class="marquee" data-marquee aria-hidden="true">
+    <div class="marquee__viewport">
+      <div class="marquee__track">
+        {
+          /* two identical groups; the track translates -50% for a seamless loop */
+        }
+        <div class="marquee__group">
+          {items.map((item) => (
+            <span class="marquee__item">
+              {item}<span class="marquee__sep">{separator}</span>
+            </span>
+          ))}
+        </div>
+        <div class="marquee__group">
+          {items.map((item) => (
+            <span class="marquee__item">
+              {item}<span class="marquee__sep">{separator}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .marqueewrap {
+    min-width: 0;
+  }
+
+  /* size comes from the type scale (§1); a section may override the property */
+  .marquee__item {
+    font-family: var(--font-mono);
+    font-size: var(--marquee-size, var(--t-h3));
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-h3-lh);
+    /* verbatim: `glTF` must not become `GLTF` */
+    text-transform: none;
+    color: var(--ink);
+  }
+
+  .marquee__sep {
+    padding-inline-start: var(--marquee-gap, var(--sp-24));
+    color: var(--signal-ink);
+  }
+
+  /* §4 hover: the band is decorative, so no hover state */
+</style>

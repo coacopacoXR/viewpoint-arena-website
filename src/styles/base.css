@@ -1,0 +1,339 @@
+/* ==========================================================================
+   Viewpoint Arena — base layer
+   Reset, paper/ink, selection, focus, links, utilities, container + grid.
+   DESIGN.md §1–§3. Only tokens from tokens.css are used here.
+   ========================================================================== */
+
+/* --- Reset --------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-block-start: var(--scroll-pad);
+}
+
+body {
+  min-height: 100dvh;
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: var(--t-body);
+  font-weight: var(--t-body-wght);
+  font-stretch: var(--t-body-wdth);
+  line-height: var(--t-body-lh);
+  letter-spacing: var(--t-body-ls);
+  -webkit-font-smoothing: antialiased;
+  /* §3 hard rule: this is the backstop, never the fix. Nothing below may
+     need it at 360px. */
+  overflow-x: clip;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: inherit;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+ul[class],
+ol[class] {
+  list-style: none;
+  padding: 0;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+pre,
+code,
+kbd,
+samp {
+  font-family: var(--font-mono);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* --- §2 Selection: the site selects like the app selects a part ---------- */
+::selection {
+  background-color: var(--signal);
+  color: var(--on-signal);
+}
+
+/* --- §4/§7 Focus: 2px signal outline + the glow, never removed ----------- */
+:focus-visible {
+  outline: var(--hairline) solid transparent; /* keeps geometry stable */
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+  box-shadow: var(--glow);
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* --- Links: signal as text, underline grows from the left ----------------
+   `:where()` keeps these at zero specificity so any component can restyle its
+   own anchors without fighting the base layer. Opt out of the underline with
+   `.u-nolink` on pill/button-like anchors. -------------------------------- */
+:where(a) {
+  color: var(--signal-ink);
+  text-decoration: none;
+}
+
+:where(a:not(.u-nolink)) {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% var(--hairline);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: var(--hairline);
+  text-underline-offset: 0.22em;
+  transition:
+    background-size var(--dur-hover) var(--ease-out),
+    color var(--dur-hover) var(--ease-out);
+}
+
+:where(a:not(.u-nolink)):where(:hover, :focus-visible) {
+  background-size: 100% var(--hairline);
+}
+
+/* --- Skip link (§7 keyboard) -------------------------------------------- */
+.skip-link {
+  position: fixed;
+  inset-block-start: var(--sp-8);
+  inset-inline-start: var(--sp-8);
+  z-index: 200;
+  padding: var(--sp-12) var(--sp-16);
+  background-color: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: var(--t-mono);
+  font-weight: var(--t-mono-wght);
+  letter-spacing: var(--t-mono-ls);
+  line-height: var(--t-mono-lh);
+  text-transform: uppercase;
+  transform: translateY(-200%);
+  transition: transform var(--dur-hover) var(--ease-out);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+/* --- Utilities ----------------------------------------------------------- */
+/* While the mobile menu sheet is open the page behind it must not scroll. */
+html[data-nav-open='true'] body {
+  overflow: hidden;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--t-mono);
+  font-weight: var(--t-mono-wght);
+  letter-spacing: var(--t-mono-ls);
+  line-height: var(--t-mono-lh);
+  text-transform: uppercase;
+}
+
+.measure {
+  max-width: var(--measure);
+}
+
+/* §1 type scale. Size, leading, tracking and axis settings live in tokens. */
+.t-mega,
+.t-display,
+.t-stat,
+.t-h3,
+.t-lead,
+.t-body,
+.t-code {
+  font-family: var(--font-display);
+}
+
+.t-mega {
+  font-size: var(--t-mega);
+  font-stretch: var(--t-mega-wdth);
+  font-weight: var(--t-mega-wght);
+  letter-spacing: var(--t-mega-ls);
+  line-height: var(--t-mega-lh);
+  text-transform: uppercase;
+}
+
+.t-display {
+  font-size: var(--t-display);
+  font-stretch: var(--t-display-wdth);
+  font-weight: var(--t-display-wght);
+  letter-spacing: var(--t-display-ls);
+  line-height: var(--t-display-lh);
+  text-transform: uppercase;
+}
+
+.t-stat {
+  font-size: var(--t-stat);
+  font-stretch: var(--t-stat-wdth);
+  font-weight: var(--t-stat-wght);
+  letter-spacing: var(--t-stat-ls);
+  line-height: var(--t-stat-lh);
+  font-variant-numeric: tabular-nums;
+}
+
+.t-h3 {
+  font-size: var(--t-h3);
+  font-stretch: var(--t-h3-wdth);
+  font-weight: var(--t-h3-wght);
+  letter-spacing: var(--t-h3-ls);
+  line-height: var(--t-h3-lh);
+}
+
+.t-lead {
+  font-size: var(--t-lead);
+  font-stretch: var(--t-lead-wdth);
+  font-weight: var(--t-lead-wght);
+  letter-spacing: var(--t-lead-ls);
+  line-height: var(--t-lead-lh);
+}
+
+.t-code {
+  font-family: var(--font-mono);
+  font-size: var(--t-code);
+  font-weight: var(--t-code-wght);
+  letter-spacing: var(--t-code-ls);
+  line-height: var(--t-code-lh);
+}
+
+/* Numbers in tables and stats are always tabular (§5) */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- §3 Container and grid ---------------------------------------------- */
+.container {
+  width: 100%;
+  max-width: var(--max-content);
+  margin-inline: auto;
+  padding-inline: var(--page-margin);
+}
+
+/* Full-bleed wrapper: the container's inner width, ignoring --max-content */
+.container--wide {
+  max-width: none;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  gap: var(--gutter);
+}
+
+/* Children span `--span` columns at ≥1024 (12 cols), `--span-md` at 640–1023
+   (8 cols), and always the full width below 640 so nothing can overflow at
+   360px. Keep `--span` ≤ 12 and `--span-md` ≤ 8: `span` takes no math. */
+@media (min-width: 1024px) {
+  .grid > * {
+    grid-column: span var(--span, var(--cols));
+    min-width: 0;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .grid > * {
+    grid-column: span var(--span-md, var(--cols));
+    min-width: 0;
+  }
+}
+
+@media (max-width: 639px) {
+  .grid > * {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+}
+
+.section {
+  position: relative;
+  padding-block: var(--section-pad);
+}
+
+/* Hairline rules (§2 --rule) */
+.hairline {
+  border: 0;
+  border-block-start: var(--hairline) solid var(--rule);
+}
+
+/* §1: display type may break out of the container to the page edge.
+   Negative page margin, never `100vw` — 100vw includes the scrollbar and
+   would create the horizontal scroll §3 forbids. */
+.breakout {
+  margin-inline: calc(var(--page-margin) * -1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

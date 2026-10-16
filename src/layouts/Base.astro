@@ -1,0 +1,149 @@
+---
+/**
+ * Base layout (DESIGN.md §3, §5).
+ * `<html lang="en">`, meta from props, theme-colour for both schemes, the
+ * inline no-flash theme script, skip link, Nav, `<main id="content">`, Footer,
+ * the blueprint grid layer and the single motion module.
+ */
+import '../styles/tokens.css';
+import '../styles/fonts.css';
+import '../styles/base.css';
+import '../styles/motion.css';
+
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import { withBase } from '../lib/links';
+import { META, SITE } from '../lib/site';
+
+/* The display face is preloaded (§1/§7). Importing it as an asset gives the
+   same hashed URL Vite emits for fonts.css, so nothing is fetched twice. */
+import archivoWoff2 from '@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2';
+
+interface Props {
+  /** Falls back to the site-wide META title. */
+  title?: string;
+  description?: string;
+  ogType?: 'website' | 'article';
+  /** Extra classes on `<body>`. */
+  bodyClass?: string;
+}
+
+const {
+  title = META.title,
+  description = META.description,
+  ogType = 'website',
+  bodyClass,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    {/* §2 dark mode follows the OS unless overridden; both chrome colours ship */}
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F1EEE6" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0F0F0E" />
+
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+
+    <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href={archivoWoff2}
+      crossorigin="anonymous"
+    />
+
+    {/* §2: set data-theme before first paint so the page never flashes.
+        localStorage is always inside try/catch (private mode, blocked storage). */}
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem('va-theme');
+          if (stored === 'dark' || stored === 'light') {
+            document.documentElement.setAttribute('data-theme', stored);
+          }
+        } catch (err) {
+          /* no storage: follow the OS scheme */
+        }
+      })();
+    </script>
+  </head>
+
+  <body class={bodyClass}>
+    <a class="skip-link u-nolink" href="#content">Skip to content</a>
+
+    {/* §3 blueprint layer: pure CSS, no images, no JS, never interactive */}
+    <div class="blueprint" aria-hidden="true"></div>
+
+    <Nav />
+
+    <main id="content" class="main" tabindex="-1">
+      <slot />
+    </main>
+
+    <Footer />
+
+    <script>
+      import '../scripts/motion';
+    </script>
+  </body>
+</html>
+
+<style>
+  /* §3: fixed column lines at --grid, aligned to the container's content box */
+  .blueprint {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .blueprint::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    max-width: var(--max-content);
+    margin-inline: auto;
+    padding-inline: var(--page-margin);
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--grid) 0 var(--hairline),
+      transparent var(--hairline) calc(100% / var(--cols))
+    );
+    background-origin: content-box;
+    background-clip: content-box;
+  }
+
+  .main {
+    position: relative;
+    z-index: 1;
+    /* keep the fixed pill off the top of the first section */
+    padding-block-start: calc(var(--nav-top) + var(--nav-h) + var(--sp-24));
+  }
+
+  .main:focus {
+    outline: none;
+  }
+
+  .main:focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 2px;
+  }
+</style>

@@ -1,0 +1,61 @@
+---
+/**
+ * Page hero (DESIGN.md §6): the `[0n] LABEL` section head, the display heading
+ * and the lead paragraph that open every page. Composed from SectionHead and
+ * Display so /install, /how-it-works and /changelog stay identical.
+ */
+import SectionHead from './SectionHead.astro';
+import Display from './Display.astro';
+import type { DisplayLine } from '../lib/types';
+
+interface Props {
+  /** Mono label, e.g. `INSTALL`. */
+  label: string;
+  /** The `h1` of the page. */
+  lines: (string | DisplayLine)[];
+  lead?: string;
+  /** Provenance for the section head. */
+  path?: string;
+  anchor?: string;
+  sha?: string;
+  fig?: string;
+  class?: string;
+}
+
+const { label, lines, lead, path, anchor, sha, fig, class: className } = Astro.props;
+---
+
+<header class:list={['pagehero container', className]}>
+  <SectionHead label={label} fig={fig} path={path} anchor={anchor} sha={sha} />
+  <div class="pagehero__grid grid">
+    <div class="pagehero__title" style="--span: 8; --span-md: 8;">
+      <Display as="h1" lines={lines} reveal="up" />
+    </div>
+    {lead && (
+      <div class="pagehero__lead" style="--span: 4; --span-md: 8;">
+        <p class="t-lead" data-reveal="up">{lead}</p>
+      </div>
+    )}
+  </div>
+</header>
+
+<style>
+  .pagehero {
+    padding-block: var(--sp-48) var(--sp-32);
+  }
+
+  .pagehero__grid {
+    padding-block-start: var(--sp-32);
+    align-items: end;
+  }
+
+  .pagehero__title,
+  .pagehero__lead {
+    min-width: 0;
+  }
+
+  .pagehero__lead p {
+    color: var(--ink-2);
+    max-width: var(--measure);
+  }
+</style>

@@ -1,0 +1,21 @@
+---
+/**
+ * /install — task 01 ships the hero only. Task 03 renders steps 1–10 from
+ * CONTENT.md `/install` (sticky TOC, every command a Command block, every table
+ * a SpecTable, limits as Limit).
+ */
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import { PAGE_META } from '../lib/site';
+---
+
+<Base title={PAGE_META.install.title} description={PAGE_META.install.description}>
+  <PageHero
+    label="INSTALL"
+    lines={['Install it yourself.']}
+    lead="One installer, Docker Compose, about 15 minutes. It sets up the app, the live room server, the database and local meeting capture."
+    path="docs/INSTALL.md"
+  />
+
+  <!-- task 03: sections 1–10 of docs/INSTALL.md, TOC, SpecTables, Limits -->
+</Base>

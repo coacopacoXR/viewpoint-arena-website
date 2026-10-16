@@ -1,0 +1,92 @@
+---
+/**
+ * Display heading (DESIGN.md §5 `Mega` / `Display`).
+ *
+ * Renders a real `h1`/`h2`/`h3` whose accessible name is the plain text of all
+ * its lines. Lines are `<span>`s, so the markup SplitText adds at runtime never
+ * changes what a screen reader hears. `outline` lines start as an outline and
+ * fill with ink on scroll (`data-scrub-fill`, DESIGN §4).
+ */
+import type { DisplayLine, Reveal } from '../lib/types';
+
+interface Props {
+  /** Heading level. One `h1` per page. */
+  as?: 'h1' | 'h2' | 'h3';
+  /** Text lines, in order. A line may be `outline` (fills with ink on scroll). */
+  lines: (string | DisplayLine)[];
+  /** Use `--t-mega` instead of `--t-display`. */
+  mega?: boolean;
+  /**
+   * How an outlined line fills with ink (§4):
+   *  - `element` — as the element itself scrolls from 85% to 45% of the viewport
+   *  - `page`    — over the first 40vh of page scroll (the hero case)
+   */
+  fill?: 'element' | 'page';
+  /** Centred — allowed only for the closing CTA (§1). */
+  centred?: boolean;
+  reveal?: Reveal;
+  id?: string;
+  class?: string;
+}
+
+const {
+  as: Tag = 'h2',
+  lines,
+  mega = false,
+  fill = 'element',
+  centred = false,
+  reveal,
+  id,
+  class: className,
+} = Astro.props;
+
+const normalised: DisplayLine[] = lines.map((line) =>
+  typeof line === 'string' ? { text: line } : line,
+);
+---
+
+<Tag
+  id={id}
+  class:list={[
+    'display',
+    mega ? 't-mega' : 't-display',
+    centred && 'display--centred',
+    className,
+  ]}
+  data-reveal={reveal}
+>
+  {normalised.map((line) => (
+    <span
+      class:list={['display__line', line.outline && 'display__line--outline']}
+      data-scrub-fill={line.outline ? (fill === 'page' ? 'page' : '') : undefined}
+    >
+      {line.text}
+    </span>
+  ))}
+</Tag>
+
+<style>
+  .display {
+    margin: 0;
+    /* §1: never wraps one word alone onto a line. Never break inside a word:
+       display type breaks out to the viewport instead (§3). */
+    text-wrap: balance;
+  }
+
+  /* Each line is its own block at every width: on mobile the mega type wraps
+     inside the line, at ≥768px the line *is* the wanted break (CONTENT.md
+     `<br>` markers). Inline lines would glue two sentences together. */
+  .display__line {
+    display: block;
+    text-wrap: balance;
+  }
+
+  .display--centred {
+    text-align: center;
+  }
+
+  .display__line--outline {
+    /* start/end states live in styles/motion.css behind `html.motion` */
+    color: var(--ink);
+  }
+</style>

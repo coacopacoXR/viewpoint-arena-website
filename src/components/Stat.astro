@@ -1,0 +1,107 @@
+---
+/**
+ * Stat (DESIGN.md §5, §4 [04]).
+ * Big number, unit, mono label, footnote with the conditions the number was
+ * measured under. The final value is always in the HTML; `data-count-from/-to`
+ * only lets motion.ts scrub the "after" number up from the "before" value.
+ * Under reduced motion nothing animates and the HTML value is what shows.
+ */
+interface Props {
+  /** "Before" value, verbatim from CONTENT.md, e.g. `10 002`. */
+  from?: string;
+  /** "After" value, verbatim, e.g. `8`. */
+  to: string;
+  unit?: string;
+  label: string;
+  /** Conditions: machine, GPU, sha. Shown every time (§8). */
+  foot?: string;
+  class?: string;
+}
+
+const { from, to, unit, label, foot, class: className } = Astro.props;
+const animated = from !== undefined && from !== '';
+---
+
+<figure class:list={['stat', className]}>
+  <p class="stat__value t-stat">
+    {animated && <span class="stat__before">{from}</span>}
+    {animated && <span class="stat__arrow" aria-hidden="true">→</span>}
+    <span
+      class="stat__after"
+      data-count-from={animated ? from : undefined}
+      data-count-to={animated ? to : undefined}
+    >{to}</span>
+    {unit && <span class="stat__unit">{unit}</span>}
+  </p>
+  <p class="stat__label">{label}</p>
+  {foot && <p class="stat__foot">{foot}</p>}
+</figure>
+
+<style>
+  .stat {
+    margin: 0;
+    min-width: 0;
+  }
+
+  .stat__value {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 var(--sp-16);
+    margin: 0;
+  }
+
+  /* §4 [04]: the "before" number struck-through-light in --ink-2 */
+  .stat__before {
+    color: var(--ink-2);
+    text-decoration: line-through;
+    text-decoration-thickness: var(--hairline);
+    font-size: 0.45em;
+    letter-spacing: 0;
+  }
+
+  .stat__arrow {
+    color: var(--ink-2);
+    font-size: 0.3em;
+    font-stretch: 100%;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  .stat__after {
+    color: var(--ink);
+  }
+
+  /* units are case-significant (`ms`, `s`) so they are not uppercased */
+  .stat__unit {
+    font-family: var(--font-mono);
+    font-size: var(--t-h3);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: 0;
+    line-height: 1;
+    color: var(--ink-2);
+  }
+
+  .stat__label,
+  .stat__foot {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    overflow-wrap: anywhere;
+  }
+
+  .stat__label {
+    padding-block-start: var(--sp-12);
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .stat__foot {
+    padding-block-start: var(--sp-4);
+    text-transform: none;
+    color: var(--ink-2);
+  }
+</style>

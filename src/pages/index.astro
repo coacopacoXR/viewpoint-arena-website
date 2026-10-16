@@ -1,0 +1,203 @@
+---
+/**
+ * TEMPORARY landing page (task 01).
+ * Hero from CONTENT.md `/ HERO`, plus one section-head row and one Command
+ * block so the design system can be seen working. Task 02 replaces everything
+ * below the hero with the full section list.
+ */
+import Base from '../layouts/Base.astro';
+import Display from '../components/Display.astro';
+import Button from '../components/Button.astro';
+import SectionHead from '../components/SectionHead.astro';
+import SrcTag from '../components/SrcTag.astro';
+import Command from '../components/Command.astro';
+import { SITE } from '../lib/site';
+---
+
+<Base>
+  <section class="hero container" aria-labelledby="hero-title">
+    <p class="hero__eyebrow">SELF-HOSTED 3D DESIGN REVIEW · 0.1.0 PREVIEW</p>
+
+    {/* §3: display type may break out to the full viewport — at --t-mega the
+        headline is wider than the content column by design */}
+    <div class="hero__title breakout">
+      <Display
+        as="h1"
+        mega
+        fill="page"
+        id="hero-title"
+        reveal="up"
+        lines={[
+          { text: 'Review the model.' },
+          { text: 'Not the screenshot.', outline: true },
+        ]}
+      />
+    </div>
+
+    <div class="hero__grid grid">
+      <div class="hero__side" style="--span: 7; --span-md: 8;">
+        <p class="hero__lead t-lead" data-reveal="up">
+          Viewpoint Arena is a room where a small team opens the same 3D model, points at
+          parts, follows each other's view and talks it through. The meeting turns into
+          risks, actions and rationale, on your own hardware.
+        </p>
+
+        <div class="hero__actions">
+          <Button href="/install" variant="primary" arrow="→">Install it</Button>
+          <Button href={SITE.repo} variant="ghost" arrow="↗">Read the code</Button>
+        </div>
+      </div>
+
+      <div class="hero__meta" style="--span: 5; --span-md: 8;">
+        <ul class="hero__aside">
+          <li>GLB · glTF · OBJ · FBX · STL · STEP · IGES · BREP</li>
+          <li>ONE MACHINE · DOCKER · ONE INSTALL SCRIPT</li>
+          <li>NO CLOUD ACCOUNTS</li>
+        </ul>
+
+        <p class="hero__src">
+          <SrcTag path="README.md" />
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ↓ temporary: proves SectionHead, line reveals and Command. Task 02 replaces it. -->
+  <section class="demo container section" aria-labelledby="demo-title">
+    <SectionHead label="[01] WHY IT EXISTS" fig="FIG. 01" path="README.md" anchor="What it does" />
+
+    <div class="demo__title breakout">
+      <Display
+        as="h2"
+        id="demo-title"
+        reveal="up"
+        lines={["A screenshot can't", 'answer back.']}
+      />
+    </div>
+
+    <div class="demo__grid grid">
+      <div class="demo__body" style="--span: 5; --span-md: 8;">
+        <p class="demo__para" data-reveal="lines">
+          Design reviews usually happen around a picture of the model: a slide, a screen
+          share, a PNG in a chat. Someone asks what's behind that bracket and the answer is
+          "I'll check."
+        </p>
+
+        <p class="demo__src">
+          <SrcTag path="docs/INSTALL.md" anchor="3" />
+        </p>
+      </div>
+
+      <div class="demo__cmd" style="--span: 7; --span-md: 8;">
+        <Command
+          lang="Ubuntu"
+          code="git clone https://github.com/coacopacoXR/viewpoint-arena.git ~/viewpoint-arena"
+        />
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    padding-block: var(--sp-48) var(--sp-32);
+  }
+
+  .hero__eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    text-transform: uppercase;
+    color: var(--ink-2);
+    padding-block-end: var(--sp-24);
+  }
+
+  .hero__title {
+    padding-block-start: var(--sp-24);
+    min-width: 0;
+  }
+
+  .hero__grid {
+    padding-block-start: var(--sp-48);
+    align-items: end;
+  }
+
+  .hero__side,
+  .hero__meta {
+    min-width: 0;
+  }
+
+  .hero__meta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-16);
+  }
+
+  .hero__lead {
+    color: var(--ink-2);
+    max-width: var(--measure);
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-12);
+    padding-block: var(--sp-24);
+  }
+
+  .hero__aside {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+    list-style: none;
+    margin: 0;
+    padding: var(--sp-16) 0 0;
+    border-block-start: var(--hairline) solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    /* verbatim copy: `glTF` must survive */
+    text-transform: none;
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+
+  .hero__src {
+    margin: 0;
+    padding-block-start: var(--sp-16);
+  }
+
+  .demo__title {
+    padding-block-start: var(--sp-32);
+    min-width: 0;
+  }
+
+  .demo__grid {
+    padding-block-start: var(--sp-32);
+    align-items: start;
+  }
+
+  .demo__body,
+  .demo__cmd {
+    min-width: 0;
+  }
+
+  .demo__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-24);
+  }
+
+  .demo__para {
+    color: var(--ink-2);
+    max-width: var(--measure);
+  }
+
+  .demo__src {
+    margin: 0;
+  }
+</style>

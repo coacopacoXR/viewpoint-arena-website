@@ -1,0 +1,354 @@
+---
+/**
+ * Nav (DESIGN.md §5).
+ * Desktop: one sticky pill — wordmark · How it works · Install · Changelog ·
+ * GitHub ↗ · Theme. Mobile: wordmark + `Menu` opening a full-screen sheet that
+ * traps focus and closes on Esc. The pill hides on scroll down and shows on
+ * scroll up (§4). Behaviour lives in src/scripts/nav.ts and src/scripts/theme.ts.
+ */
+import { pageUrl } from '../lib/links';
+import { NAV_LINKS, SITE } from '../lib/site';
+
+const current = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isActive = (href: string) => {
+  const target = pageUrl(href).replace(/\/$/, '') || '/';
+  return current === target || current === `${target}/index.html`;
+};
+---
+
+<header class="nav" data-nav>
+  <div class="nav__inner container">
+    <div class="nav__pill">
+      <a class="nav__wordmark u-nolink" href={pageUrl('/')}>
+        {SITE.name}
+      </a>
+
+      <nav class="nav__links" aria-label="Main">
+        <ul class="nav__list">
+          {
+            NAV_LINKS.map((link) => (
+              <li>
+                <a
+                  class="nav__link u-nolink"
+                  href={pageUrl(link.href)}
+                  aria-current={isActive(link.href) ? 'page' : undefined}
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))
+          }
+          <li>
+            <a
+              class="nav__link u-nolink"
+              href={SITE.repo}
+              target="_blank"
+              rel="noopener noreferrer"
+            >GitHub ↗</a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="nav__actions">
+        <button
+          type="button"
+          class="nav__theme"
+          data-theme-toggle
+          data-theme-label-dark="Switch to dark theme"
+          data-theme-label-light="Switch to light theme"
+          aria-label="Switch to dark theme"
+        >
+          Theme
+        </button>
+
+        <button
+          type="button"
+          class="nav__menu"
+          data-menu-toggle
+          aria-expanded="false"
+          aria-controls="va-menu"
+        >
+          Menu
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+{/* The sheet is a sibling of the header, not a child: a transformed ancestor
+    (the hide-on-scroll header) would become its containing block. */}
+<div class="sheet" id="va-menu" data-menu-sheet inert>
+  <div class="sheet__bar">
+    <span class="sheet__wordmark">{SITE.name}</span>
+    <button
+      type="button"
+      class="sheet__close"
+      data-menu-close
+      aria-label="Close"
+    >
+      Close
+    </button>
+  </div>
+  <nav class="sheet__nav" aria-label="Main menu">
+    <ul class="sheet__list">
+      {
+        NAV_LINKS.map((link) => (
+          <li>
+            <a
+              class="sheet__link u-nolink"
+              href={pageUrl(link.href)}
+              aria-current={isActive(link.href) ? 'page' : undefined}
+            >
+              {link.label}
+            </a>
+          </li>
+        ))
+      }
+      <li>
+        <a
+          class="sheet__link u-nolink"
+          href={SITE.repo}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          GitHub ↗
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <p class="sheet__meta">{SITE.version}</p>
+</div>
+
+<script>
+  import '../scripts/nav';
+  import '../scripts/theme';
+</script>
+
+<style>
+  .nav {
+    position: fixed;
+    inset-inline: 0;
+    inset-block-start: 0;
+    z-index: 100;
+    padding-block-start: var(--nav-top);
+    transition: transform 320ms var(--ease-out);
+  }
+
+  .nav[data-hidden='true'] {
+    transform: translateY(calc(-100% - var(--nav-top) * 2));
+  }
+
+  .nav__inner {
+    display: flex;
+  }
+
+  .nav__pill {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-16);
+    width: 100%;
+    min-height: var(--nav-h);
+    padding-inline: var(--sp-16);
+    background-color: var(--paper);
+    border: var(--hairline) solid var(--rule);
+    border-radius: var(--r-pill);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    text-transform: uppercase;
+  }
+
+  .nav__wordmark {
+    /* shrinks with an ellipsis before it can ever widen the pill */
+    flex: 0 1 auto;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  .nav__wordmark:hover,
+  .nav__wordmark:focus-visible {
+    color: var(--signal-ink);
+  }
+
+  .nav__links {
+    display: none;
+    margin-inline-start: auto;
+    min-width: 0;
+  }
+
+  .nav__list {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-16);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav__link {
+    display: inline-block;
+    padding-block: var(--sp-4);
+    color: var(--ink-2);
+    white-space: nowrap;
+    transition: color var(--dur-hover) var(--ease-out);
+  }
+
+  .nav__link:hover,
+  .nav__link:focus-visible {
+    color: var(--signal-ink);
+  }
+
+  .nav__link[aria-current='page'] {
+    color: var(--ink);
+    box-shadow: inset 0 calc(-1 * var(--hairline)) 0 0 var(--signal);
+  }
+
+  .nav__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-8);
+    margin-inline-start: auto;
+    flex: none;
+  }
+
+  .nav__theme,
+  .nav__menu,
+  .sheet__close {
+    padding: var(--sp-8) var(--sp-12);
+    border: var(--hairline) solid var(--rule);
+    border-radius: var(--r-pill);
+    color: var(--ink);
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition:
+      border-color var(--dur-hover) var(--ease-out),
+      color var(--dur-hover) var(--ease-out),
+      box-shadow var(--dur-hover) var(--ease-out);
+  }
+
+  .nav__theme:hover,
+  .nav__theme:focus-visible,
+  .nav__menu:hover,
+  .nav__menu:focus-visible,
+  .sheet__close:hover,
+  .sheet__close:focus-visible {
+    border-color: var(--signal);
+    color: var(--signal-ink);
+    box-shadow: var(--glow);
+  }
+
+  /* --- Mobile sheet ---------------------------------------------------- */
+  .sheet {
+    position: fixed;
+    inset: 0;
+    /* above the pill (z-index 100) so the sheet covers everything */
+    z-index: 101;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-32);
+    padding: calc(var(--nav-top) + var(--nav-h) + var(--sp-24)) var(--page-margin)
+      var(--sp-32);
+    background-color: var(--paper);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 220ms var(--ease-out),
+      visibility 0s linear 220ms;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .sheet[data-open='true'] {
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity 220ms var(--ease-out),
+      visibility 0s;
+  }
+
+  .sheet__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-16);
+    border-block-end: var(--hairline) solid var(--rule);
+    padding-block-end: var(--sp-12);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    text-transform: uppercase;
+  }
+
+  .sheet__wordmark {
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+
+  .sheet__nav {
+    flex: 1 1 auto;
+  }
+
+  .sheet__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .sheet__link {
+    display: block;
+    padding-block: var(--sp-8);
+    font-family: var(--font-display);
+    font-size: var(--t-h3);
+    font-stretch: var(--t-h3-wdth);
+    font-weight: var(--t-h3-wght);
+    letter-spacing: var(--t-h3-ls);
+    line-height: var(--t-h3-lh);
+    text-transform: uppercase;
+    color: var(--ink);
+    border-block-end: var(--hairline) solid var(--rule);
+    overflow-wrap: anywhere;
+  }
+
+  .sheet__link:hover,
+  .sheet__link:focus-visible {
+    color: var(--signal-ink);
+  }
+
+  .sheet__link[aria-current='page'] {
+    color: var(--signal-ink);
+  }
+
+  .sheet__meta {
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    letter-spacing: var(--t-mono-ls);
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  /* desktop: links in the pill, no Menu button */
+  @media (min-width: 900px) {
+    .nav__links {
+      display: block;
+    }
+
+    .nav__actions {
+      margin-inline-start: 0;
+    }
+
+    .nav__menu {
+      display: none;
+    }
+  }
+</style>

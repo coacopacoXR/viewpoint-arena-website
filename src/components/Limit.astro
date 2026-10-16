@@ -1,0 +1,60 @@
+---
+/**
+ * Limit (DESIGN.md §5). A "known limit" callout: hairline box, mono tag in ink.
+ * Not a warning colour — it is honest, not alarming.
+ */
+import SrcTag from './SrcTag.astro';
+
+interface Props {
+  /** Mono tag. CONTENT.md uses `LIMIT` and `STILL WORKING ON`. */
+  label?: string;
+  path?: string;
+  anchor?: string;
+  sha?: string;
+  class?: string;
+}
+
+const { label = 'LIMIT', path, anchor, sha, class: className } = Astro.props;
+---
+
+<aside class:list={['limit', className]}>
+  <p class="limit__label">{label}</p>
+  <div class="limit__body"><slot /></div>
+  {path && (
+    <p class="limit__src">
+      <SrcTag path={path} anchor={anchor} sha={sha} />
+    </p>
+  )}
+</aside>
+
+<style>
+  .limit {
+    padding: var(--sp-16) var(--sp-24);
+    border: var(--hairline) solid var(--rule);
+    border-radius: var(--r-box);
+    background-color: transparent;
+  }
+
+  .limit__label {
+    margin: 0;
+    padding-block-end: var(--sp-8);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    text-transform: uppercase;
+    /* ink, not a warning colour (§5) */
+    color: var(--ink);
+  }
+
+  .limit__body {
+    color: var(--ink-2);
+    max-width: var(--measure);
+  }
+
+  .limit__src {
+    margin: 0;
+    padding-block-start: var(--sp-12);
+  }
+</style>

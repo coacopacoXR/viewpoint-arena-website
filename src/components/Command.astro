@@ -1,0 +1,129 @@
+---
+/**
+ * Command block (DESIGN.md §5).
+ * Language tag, shell prompt (shown, never copied), a Copy button with an
+ * aria-live announcement, and a code area that scrolls inside itself so a long
+ * command can never push the page wider at 360px (§3).
+ */
+import type { CommandLang } from '../lib/types';
+
+interface Props {
+  /** The command text — this is exactly what Copy puts on the clipboard. */
+  code: string;
+  lang?: CommandLang;
+  /** Overrides the prompt derived from `lang`. Never copied. */
+  prompt?: string;
+  /** Visible caption, e.g. the step name. */
+  caption?: string;
+  class?: string;
+}
+
+const { code, lang = 'Ubuntu', prompt, caption, class: className } = Astro.props;
+const shell = prompt ?? (lang === 'PowerShell' ? 'PS C:\\>' : '$');
+---
+
+<figure class:list={['cmd', className]}>
+  <div class="cmd__bar">
+    <span class="cmd__lang">{lang}</span>
+    {caption && <span class="cmd__caption">{caption}</span>}
+    <button
+      type="button"
+      class="cmd__copy"
+      data-copy={code}
+      data-copy-label="Copy"
+      data-copy-done="Copied"
+    >
+      Copy
+    </button>
+  </div>
+  <pre class="cmd__pre" tabindex="0"><code class="cmd__code"><span
+      class="cmd__prompt"
+      aria-hidden="true">{shell}</span>{code}</code></pre>
+  <p class="cmd__status visually-hidden" aria-live="polite" data-copy-status></p>
+</figure>
+
+<script>
+  import '../scripts/copy';
+</script>
+
+<style>
+  .cmd {
+    margin: 0;
+    background-color: var(--paper-2);
+    border: var(--hairline) solid var(--rule);
+    border-radius: var(--r-box);
+  }
+
+  .cmd__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-12);
+    padding: var(--sp-8) var(--sp-12);
+    border-block-end: var(--hairline) solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  .cmd__caption {
+    text-transform: none;
+    overflow-wrap: anywhere;
+  }
+
+  .cmd__copy {
+    margin-inline-start: auto;
+    flex: none;
+    padding: var(--sp-4) var(--sp-12);
+    border: var(--hairline) solid var(--rule);
+    border-radius: var(--r-pill);
+    color: var(--ink);
+    transition:
+      border-color var(--dur-hover) var(--ease-out),
+      color var(--dur-hover) var(--ease-out),
+      box-shadow var(--dur-hover) var(--ease-out);
+  }
+
+  .cmd__copy:hover,
+  .cmd__copy:focus-visible {
+    border-color: var(--signal);
+    color: var(--signal-ink);
+    box-shadow: var(--glow);
+  }
+
+  .cmd__copy[data-state='done'] {
+    border-color: var(--signal);
+    color: var(--signal-ink);
+  }
+
+  /* the code area scrolls inside itself, never the page (§3) */
+  .cmd__pre {
+    margin: 0;
+    padding: var(--sp-16) var(--sp-12);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    font-family: var(--font-mono);
+    font-size: var(--t-code);
+    font-weight: var(--t-code-wght);
+    letter-spacing: var(--t-code-ls);
+    line-height: var(--t-code-lh);
+    color: var(--ink);
+    tab-size: 2;
+  }
+
+  .cmd__code {
+    display: block;
+    width: max-content;
+    min-width: 100%;
+    white-space: pre;
+  }
+
+  .cmd__prompt {
+    color: var(--ink-2);
+    user-select: none;
+    padding-inline-end: var(--sp-8);
+  }
+</style>

@@ -1,0 +1,108 @@
+---
+/**
+ * Section head (DESIGN.md §3, §5).
+ * Full-width hairline, then one mono row: left `[03] FEATURES`,
+ * right `FIG. 03 · SRC README.md §What it does`. A `+` registration mark sits at
+ * each top corner, like a drawing sheet. On mobile the right half drops below.
+ */
+import SrcTag from './SrcTag.astro';
+
+interface Props {
+  /** e.g. `[03] FEATURES` */
+  label: string;
+  /** e.g. `FIG. 03` */
+  fig?: string;
+  /** Provenance: path inside the app repo. */
+  path?: string;
+  anchor?: string;
+  sha?: string;
+  id?: string;
+  class?: string;
+}
+
+const { label, fig, path, anchor, sha, id, class: className } = Astro.props;
+const hasSrc = Boolean(path || anchor || sha);
+---
+
+<div class:list={['sectionhead', className]} id={id}>
+  <span class="sectionhead__mark sectionhead__mark--start" aria-hidden="true">+</span>
+  <span class="sectionhead__mark sectionhead__mark--end" aria-hidden="true">+</span>
+  <div class="sectionhead__rule" aria-hidden="true"></div>
+  <div class="sectionhead__row">
+    <p class="sectionhead__label">{label}</p>
+    {(fig || hasSrc) && (
+      <p class="sectionhead__meta">
+        {fig && <span class="sectionhead__fig">{fig}</span>}
+        {fig && hasSrc && <span aria-hidden="true">&nbsp;·&nbsp;</span>}
+        {hasSrc && <SrcTag path={path} anchor={anchor} sha={sha} />}
+      </p>
+    )}
+  </div>
+</div>
+
+<style>
+  .sectionhead {
+    position: relative;
+    padding-block-start: var(--sp-16);
+  }
+
+  .sectionhead__rule {
+    border-block-start: var(--hairline) solid var(--rule);
+  }
+
+  /* registration marks, on the hairline at both corners */
+  .sectionhead__mark {
+    position: absolute;
+    inset-block-start: calc(var(--sp-16) - 0.5em);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    line-height: 1;
+    color: var(--ink-2);
+    pointer-events: none;
+  }
+
+  .sectionhead__mark--start {
+    inset-inline-start: 0;
+    transform: translateX(-50%);
+  }
+
+  .sectionhead__mark--end {
+    inset-inline-end: 0;
+    transform: translateX(50%);
+  }
+
+  .sectionhead__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-8) var(--sp-24);
+    align-items: baseline;
+    justify-content: space-between;
+    padding-block-start: var(--sp-12);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    color: var(--ink);
+  }
+
+  .sectionhead__label,
+  .sectionhead__meta,
+  .sectionhead__fig {
+    margin: 0;
+  }
+
+  .sectionhead__meta {
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+
+  /* below 640px the right half drops under the label (§3) */
+  @media (max-width: 639px) {
+    .sectionhead__row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--sp-4);
+    }
+  }
+</style>

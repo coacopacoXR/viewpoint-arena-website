@@ -1,0 +1,123 @@
+/* ==========================================================================
+   Viewpoint Arena — motion layer (DESIGN.md §4)
+   Every rule here is gated on `html.motion`, which src/scripts/motion.ts adds
+   only when `prefers-reduced-motion` is not `reduce`. With JS off, or with
+   reduced motion on, none of this applies and all content is visible.
+   Only transform / opacity / clip-path / background-size are animated, so no
+   reveal can cause layout shift.
+   ========================================================================== */
+
+/* --- Lenis (smooth scroll) ----------------------------------------------- */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* --- Reveal start states (JS animates them back to natural) -------------- */
+html.motion [data-reveal='up'] {
+  opacity: 0;
+  transform: translate3d(0, var(--sp-24), 0);
+}
+
+html.motion [data-reveal='fade'] {
+  opacity: 0;
+}
+
+/* SplitText mask lines. `mask: 'lines'` clones each line into a wrapper whose
+   class is `<linesClass>-mask` with `overflow: clip` set inline, so only the
+   compositing hint is needed here. */
+html.motion [data-reveal='lines'] .split-line {
+  display: block;
+  will-change: transform;
+}
+
+html.motion [data-reveal='lines'] .split-line-mask {
+  display: block;
+}
+
+/* --- Scrub fill: outline → ink (§4 hero line 2, §4 [05] the "0") --------- */
+[data-scrub-fill] {
+  color: var(--ink);
+}
+
+html.motion [data-scrub-fill] {
+  color: transparent;
+  -webkit-text-stroke: 0.018em var(--ink);
+  background-image: linear-gradient(var(--ink), var(--ink));
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* --- Marquee (§4, one instance on the site) ------------------------------ */
+.marquee {
+  --marquee-gap: var(--sp-24);
+  position: relative;
+  overflow: clip;
+}
+
+.marquee__viewport {
+  overflow: clip;
+  display: flex;
+  width: 100%;
+}
+
+.marquee__track {
+  display: flex;
+  flex: 0 0 auto;
+  width: max-content;
+  align-items: baseline;
+}
+
+.marquee__group {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: baseline;
+  gap: var(--marquee-gap);
+  padding-inline-end: var(--marquee-gap);
+  white-space: nowrap;
+}
+
+/* Without motion the band stops and wraps as a static line (§4) */
+html:not(.motion) .marquee__viewport {
+  display: block;
+}
+
+html:not(.motion) .marquee__track {
+  display: block;
+  width: auto;
+}
+
+html:not(.motion) .marquee__group {
+  display: inline;
+  white-space: normal;
+}
+
+html:not(.motion) .marquee__group + .marquee__group {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee__group + .marquee__group {
+    display: none;
+  }
+}
+
+/* --- Counters (§4 [04]) -------------------------------------------------- */
+html.motion [data-count-to] {
+  font-variant-numeric: tabular-nums;
+}
