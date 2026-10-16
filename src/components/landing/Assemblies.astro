@@ -10,6 +10,14 @@ import Limit from '../Limit.astro';
 import SectionHead from '../SectionHead.astro';
 import SrcTag from '../SrcTag.astro';
 import Stat from '../Stat.astro';
+import type { FigureCounter } from '../../lib/figures';
+
+interface Props {
+  /** The page's figure counter (src/lib/figures.ts). */
+  figs?: FigureCounter;
+}
+
+const { figs } = Astro.props;
 ---
 
 <section class="asm section" id="assemblies" aria-labelledby="asm-title">
@@ -33,7 +41,7 @@ import Stat from '../Stat.astro';
       </p>
 
       <div class="asm__fig" style="--span: 7; --span-md: 8;">
-        <Figure name="big-assembly" fig="FIG. 04" span={7} />
+        <Figure name="big-assembly" figs={figs} span={7} />
       </div>
 
       {/* 2×2 grid of huge numbers (§4 [04], task 02) */}

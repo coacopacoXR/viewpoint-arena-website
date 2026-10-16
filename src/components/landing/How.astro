@@ -11,6 +11,14 @@ import Display from '../Display.astro';
 import Figure from '../Figure.astro';
 import SectionHead from '../SectionHead.astro';
 import type { AssetName } from '../../lib/assets';
+import type { FigureCounter } from '../../lib/figures';
+
+interface Props {
+  /** The page's figure counter (src/lib/figures.ts). */
+  figs?: FigureCounter;
+}
+
+const { figs } = Astro.props;
 
 interface Step {
   title: string;
@@ -66,7 +74,7 @@ const STEPS: Step[] = [
                   <p class="how__stepbody">{step.body}</p>
                 </div>
                 <div class="how__fig">
-                  <Figure name={step.asset} fig="FIG. 02" span={7} />
+                  <Figure name={step.asset} figs={figs} span={7} />
                 </div>
               </li>
             ))

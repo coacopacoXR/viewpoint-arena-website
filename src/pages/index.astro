@@ -4,6 +4,10 @@
  * Section order: HERO → [01] why → marquee → [02] how → [03] features →
  * [04] big assemblies → [05] nothing leaves → [06] install → [07] what's next
  * → closing CTA → footer. One component per section in components/landing/.
+ *
+ * The page owns the figure sequence: one counter, handed to the sections in the
+ * order they appear below, so captions read `FIG. 00`, `FIG. 01`, … down the
+ * document (src/lib/figures.ts).
  */
 import Base from '../layouts/Base.astro';
 import Assemblies from '../components/landing/Assemblies.astro';
@@ -17,16 +21,19 @@ import Next from '../components/landing/Next.astro';
 import Privacy from '../components/landing/Privacy.astro';
 import SectionIndex from '../components/landing/SectionIndex.astro';
 import Why from '../components/landing/Why.astro';
+import { figureCounter } from '../lib/figures';
+
+const figs = figureCounter();
 ---
 
 <Base>
   <SectionIndex />
-  <Hero />
+  <Hero figs={figs} />
   <Why />
   <MarqueeBand />
-  <How />
-  <Features />
-  <Assemblies />
+  <How figs={figs} />
+  <Features figs={figs} />
+  <Assemblies figs={figs} />
   <Privacy />
   <InstallTeaser />
   <Next />

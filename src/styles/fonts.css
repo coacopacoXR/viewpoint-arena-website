@@ -3,6 +3,10 @@
    Two files, latin subset only, no third-party request, font-display: swap.
    The wdth axis file ("full" variant) is what lets one family run from a
    condensed heavy display to a normal body face.
+   Both files are subsets of the @fontsource-variable latin originals, made by
+   `node scripts/fonts/subset.mjs` (harfbuzz; axes and their deltas survive):
+   88 KB + 39.5 KB becomes 57 KB + 33 KB, which is what keeps the pair inside
+   §7's 110 KB. Re-run that script after copy that uses a character outside it.
    `unicode-range` is deliberately omitted: we ship a single subset per family
    and want `·`, `§`, `→`, `↗` and `—` to try the real face before falling
    back to the system stack.
@@ -15,8 +19,7 @@
   font-display: swap;
   font-weight: 100 900;
   font-stretch: 62% 125%;
-  src: url('../../node_modules/@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2')
-    format('woff2-variations');
+  src: url('../fonts/archivo-latin-var.woff2') format('woff2-variations');
 }
 
 /* JetBrains Mono Variable — labels, tags, numbers, commands. */
@@ -25,6 +28,5 @@
   font-style: normal;
   font-display: swap;
   font-weight: 100 800;
-  src: url('../../node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2')
-    format('woff2-variations');
+  src: url('../fonts/jetbrains-mono-latin-var.woff2') format('woff2-variations');
 }

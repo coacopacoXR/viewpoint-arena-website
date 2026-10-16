@@ -175,12 +175,17 @@ const FLOWS = [
       <text class="arch__sub" x="390" y="642">coturn</text>
     </g>
 
-    <!-- optional externals, outside the machine -->
+    <!-- optional externals, outside the machine.
+         The column is 170 units wide and the label face is a 0.6em mono, so
+         anything over ~15 characters wraps to a second line rather than
+         crossing the dashed box. -->
     <text class="arch__note" x="770" y="158">OPTIONAL · ONLY IF YOU</text>
     <text class="arch__note" x="770" y="172">CHOOSE THEM AT INSTALL</text>
     <g class="arch__node arch__node--optional">
       <rect class="arch__box arch__box--dashed" x="770" y="180" width="170" height="56" />
-      <text class="arch__label" x="855" y="212">OpenAI / Anthropic</text>
+      <text class="arch__label" x="855" y="203"
+        >OpenAI /<tspan x="855" dy="18">Anthropic</tspan></text
+      >
     </g>
     <g class="arch__node arch__node--optional">
       <rect class="arch__box arch__box--dashed" x="770" y="268" width="170" height="56" />
@@ -192,7 +197,9 @@ const FLOWS = [
     </g>
     <g class="arch__node arch__node--optional">
       <rect class="arch__box arch__box--dashed" x="770" y="444" width="170" height="56" />
-      <text class="arch__label" x="855" y="476">Onshape / Teamcenter</text>
+      <text class="arch__label" x="855" y="467"
+        >Onshape /<tspan x="855" dy="18">Teamcenter</tspan></text
+      >
     </g>
   </svg>
 

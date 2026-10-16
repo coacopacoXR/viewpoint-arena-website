@@ -255,8 +255,13 @@ export function sizesFor(span: number, spanMd = 8): string {
   ].join(', ');
 }
 
-/** `FIG. nn — <caption copy>`, or undefined where ASSETS.md gives no caption. */
-export function figureCaption(fig: string, name: AssetName): string | undefined {
+/**
+ * The caption copy for a capture — the text after the dash in
+ * `FIG. nn — <copy>` — or undefined where ASSETS.md gives no caption. The
+ * number comes from the page's figure counter (src/lib/figures.ts), never from
+ * here, so it can follow the document.
+ */
+export function assetCaption(name: AssetName): string | undefined {
   const asset: Asset = ASSETS[name];
-  return asset.caption ? `${fig} — ${asset.caption}` : undefined;
+  return asset.caption;
 }

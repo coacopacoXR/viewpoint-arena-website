@@ -1,5 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <!-- registration mark: --paper ground, --signal ink (DESIGN.md §2) -->
+  <!-- registration mark: paper ground, signal ink (DESIGN.md §2).
+       No double hyphen here: it is illegal inside an XML comment, and strict
+       parsers (librsvg, so sharp) refuse the file. -->
   <rect width="32" height="32" fill="#F1EEE6" />
   <path d="M16 5v22M5 16h22" stroke="#0044AA" stroke-width="3" stroke-linecap="square" />
 </svg>

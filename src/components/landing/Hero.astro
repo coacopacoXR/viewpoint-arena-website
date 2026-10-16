@@ -8,7 +8,15 @@ import Button from '../Button.astro';
 import Display from '../Display.astro';
 import HeroModel from '../HeroModel.astro';
 import SrcTag from '../SrcTag.astro';
+import type { FigureCounter } from '../../lib/figures';
 import { SITE } from '../../lib/site';
+
+interface Props {
+  /** The page's figure counter — the hero still is `FIG. 00`. */
+  figs?: FigureCounter;
+}
+
+const { figs } = Astro.props;
 ---
 
 <section class="hero container" aria-labelledby="hero-title">
@@ -55,7 +63,7 @@ import { SITE } from '../../lib/site';
     </div>
 
     <div class="hero__fig" style="--span: 5; --span-md: 8;">
-      <HeroModel />
+      <HeroModel figs={figs} />
     </div>
   </div>
 </section>

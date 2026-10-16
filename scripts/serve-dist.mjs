@@ -5,6 +5,9 @@
  * `astro preview` only allows one instance per project, which collides with a
  * preview the operator may already have open on another port; a static build
  * needs nothing more than this to be measured the way a visitor gets it.
+ * Text responses are gzipped, because every real static host (GitHub Pages,
+ * Vercel) is, and a Lighthouse run over raw bytes would measure the server
+ * rather than the site.
  *
  * Default port 4322: 4321 belongs to `astro dev`, which the operator runs.
  *
@@ -13,6 +16,7 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize, resolve } from 'node:path';
+import { gzipSync } from 'node:zlib';
 
 const root = resolve('dist');
 const port = Number(process.argv[2] ?? process.env.PORT ?? 4322);
@@ -50,6 +54,24 @@ async function read(pathname) {
   return null;
 }
 
+/** Text types a static host compresses; webp, woff2 and mp4 already are. */
+const COMPRESSIBLE = new Set(['.html', '.css', '.js', '.mjs', '.json', '.svg']);
+
+function send(res, req, status, body, type, ext) {
+  const headers = {
+    'content-type': type,
+    'cache-control': 'no-store',
+    vary: 'Accept-Encoding',
+  };
+  let out = body;
+  if (COMPRESSIBLE.has(ext) && /\bgzip\b/.test(req.headers['accept-encoding'] ?? '')) {
+    out = gzipSync(body, { level: 6 });
+    headers['content-encoding'] = 'gzip';
+  }
+  res.writeHead(status, headers);
+  res.end(out);
+}
+
 createServer(async (req, res) => {
   try {
     const url = new URL(req.url ?? '/', 'http://x');
@@ -57,15 +79,11 @@ createServer(async (req, res) => {
     if (base && pathname.startsWith(base)) pathname = pathname.slice(base.length) || '/';
     const body = await read(pathname);
     if (body === null) {
-      res.writeHead(404, { 'content-type': 'text/html; charset=utf-8' });
-      res.end(await readFile(join(root, '404.html')));
+      send(res, req, 404, await readFile(join(root, '404.html')), 'text/html; charset=utf-8', '.html');
       return;
     }
-    res.writeHead(200, {
-      'content-type': TYPES[extname(pathname).toLowerCase()] ?? 'text/html; charset=utf-8',
-      'cache-control': 'no-store',
-    });
-    res.end(body);
+    const ext = extname(pathname).toLowerCase() || '.html';
+    send(res, req, 200, body, TYPES[ext] ?? 'text/html; charset=utf-8', ext);
   } catch (err) {
     res.writeHead(500).end(String(err));
   }

@@ -5,10 +5,10 @@
  * only then pulls `hero3d.ts` in dynamically, which is what keeps the three.js
  * chunk out of the page's default JS (§7) and off a mobile Lighthouse run.
  *
- * All five conditions have to hold: `pointer: fine` or a viewport ≥768px,
- * motion allowed, no `saveData`, WebGL available, and the hero on screen. The
- * check is live — a resize across 768px or a change of the OS motion setting is
- * re-evaluated without a reload (§4).
+ * All five conditions have to hold: a viewport ≥640px that is `pointer: fine`
+ * or ≥768px wide, motion allowed, no `saveData`, WebGL available, and the hero
+ * on screen. The check is live — a resize across either width or a change of
+ * the OS motion setting is re-evaluated without a reload (§4).
  */
 
 const heroRoot = document.querySelector<HTMLElement>('[data-hero]');
@@ -41,8 +41,16 @@ if (heroRoot) {
     return webgl;
   }
 
+  /**
+   * §5 gives the 3D hero to a hover-capable device or a ≥768px viewport; the
+   * 640px floor (§3's 8-column breakpoint) is task 06's addition — a
+   * phone-sized window never gets the model, whatever its pointer reports.
+   */
+  const MIN_HERO_WIDTH = 640;
+
   function eligible(): boolean {
     return (
+      window.innerWidth >= MIN_HERO_WIDTH &&
       (fineQuery.matches || window.innerWidth >= 768) &&
       !reduceQuery.matches &&
       !saveData() &&

@@ -179,7 +179,9 @@ test('home: the slot with no capture keeps its pending mat', async ({ page: p })
   await expect(p.locator('.figure__pending')).toHaveText(/ASSET PENDING · variants/);
 });
 
-test('home: captions are FIG-numbered and the Docker shots carry theirs', async ({ page: p }) => {
+test('home: captions are FIG-numbered, in one gapless sequence down the page', async ({
+  page: p,
+}) => {
   await p.goto('./');
   const captions = await p.locator('.figure__caption, .hero-model__caption').allTextContents();
   const numbered = captions.filter((text) => text.startsWith('FIG.'));
@@ -188,6 +190,9 @@ test('home: captions are FIG-numbered and the Docker shots carry theirs', async 
   for (const caption of numbered) {
     expect(caption).toMatch(/^FIG\. \d\d — \S/);
   }
+  /* task 06 §0: one sequence in document order, no repeats and no gaps */
+  const numbers = numbered.map((caption) => Number(caption.slice(5, 7)));
+  expect(numbers).toEqual(numbers.map((_, index) => index));
   expect(numbered.some((text) => text.includes('text-to-speech reading a script'))).toBe(true);
   expect(numbered.some((text) => text.includes("Chromium's built-in test camera"))).toBe(true);
 });
@@ -333,3 +338,52 @@ test('how-it-works: the drawing names app, and nginx reaches the database itself
     expect(text, `${variant}: lost the Database box`).toContain('Postgres / Supabase');
   }
 });
+
+/**
+ * Task 06 §0: every label in the drawing sits inside its box with padding, in
+ * both variants — the optional externals' two-word names used to cross their
+ * dashed boxes. Measured in SVG units, so it holds at any rendered width.
+ */
+for (const [width, variant] of [
+  [1440, 'wide'],
+  [360, 'stack'],
+] as const) {
+  test(`how-it-works at ${width}px: every ${variant} label sits inside its box`, async ({
+    page: p,
+  }) => {
+    await p.setViewportSize({ width, height: 900 });
+    await p.goto('how-it-works');
+
+    const outside = await p.evaluate(
+      (name) => {
+        const svg = document.querySelector(`.arch__svg--${name}`);
+        if (!svg) return ['the variant is not in the DOM'];
+        const offenders: string[] = [];
+        for (const node of svg.querySelectorAll('.arch__node')) {
+          const box = node.querySelector('rect')?.getBBox();
+          if (!box) continue;
+          for (const label of node.querySelectorAll('text')) {
+            const text = label.getBBox();
+            const pad = 4;
+            if (
+              text.x < box.x + pad ||
+              text.x + text.width > box.x + box.width - pad ||
+              text.y < box.y + pad / 2 ||
+              text.y + text.height > box.y + box.height - pad / 2
+            ) {
+              offenders.push(
+                `"${label.textContent?.trim()}" ${text.width.toFixed(0)}x${text.height.toFixed(
+                  0,
+                )} in a ${box.width}x${box.height} box`,
+              );
+            }
+          }
+        }
+        return offenders;
+      },
+      variant,
+    );
+
+    expect(outside, `${variant}: labels outside their boxes`).toEqual([]);
+  });
+}

@@ -117,6 +117,83 @@ test.describe('prefers-reduced-motion: reduce', () => {
     );
     expect(hidden).toBe(0);
   });
+
+  /**
+   * Task 06 §4: after a full walk of the page, nothing carries an inline
+   * transform (so no GSAP tween ran), the marquee is a static wrapped line and
+   * no video plays.
+   */
+  test('home stays put: no inline transforms, a static band, no playing video', async ({
+    page: p,
+  }) => {
+    await p.setViewportSize({ width: 1440, height: 900 });
+    await p.goto('./');
+    await p.waitForLoadState('load');
+
+    /* walk the page the way a visitor reads it, so every scrub would fire */
+    await p.evaluate(async () => {
+      const step = Math.round(window.innerHeight / 2);
+      for (let y = 0; y < document.body.scrollHeight; y += step) {
+        window.scrollTo(0, y);
+        await new Promise((resolve) => setTimeout(resolve, 120));
+      }
+    });
+    await p.waitForTimeout(600);
+
+    const state = await p.evaluate(() => ({
+      transformed: Array.from(document.querySelectorAll<HTMLElement>('*'))
+        .filter((el) => el.style.transform && el.style.transform !== 'none')
+        .map((el) => String(el.className || el.tagName)),
+      duplicateBand:
+        document.querySelectorAll('.marquee__group')[1] === undefined
+          ? 'missing'
+          : getComputedStyle(document.querySelectorAll('.marquee__group')[1]).display,
+      bandX: document.querySelector('.marquee__track')?.getBoundingClientRect().x ?? null,
+      videos: Array.from(document.querySelectorAll<HTMLVideoElement>('video')).map((video) => ({
+        src: video.querySelector('source')?.getAttribute('src') ?? '',
+        paused: video.paused,
+        time: video.currentTime,
+      })),
+    }));
+
+    expect(
+      state.transformed,
+      'elements carry an inline transform after a reduced-motion scroll',
+    ).toEqual([]);
+    /* §4: the band stops and wraps as a static line — the seamless duplicate
+       that only exists to loop is dropped */
+    expect(state.duplicateBand, 'the duplicated marquee group is still laid out').toBe('none');
+
+    await p.waitForTimeout(700);
+    const laterX = await p.evaluate(
+      () => document.querySelector('.marquee__track')?.getBoundingClientRect().x ?? null,
+    );
+    expect(laterX, 'the marquee is still moving').toBe(state.bandX);
+
+    expect(state.videos.length).toBe(2);
+    for (const video of state.videos) {
+      expect(video.paused, `${video.src} autoplays under reduced motion`).toBe(true);
+      expect(video.time, `${video.src} advanced under reduced motion`).toBe(0);
+    }
+  });
+});
+
+/** Task 06 §5: at 360px the 3D hero must not load, whatever the pointer says. */
+test('home at 360px never loads the 3D hero', async ({ page: p }) => {
+  const requested: string[] = [];
+  p.on('request', (request) => requested.push(request.url()));
+
+  await p.setViewportSize({ width: 360, height: 740 });
+  await p.goto('./');
+  await p.waitForLoadState('load');
+  await p.locator('[data-hero]').scrollIntoViewIfNeeded();
+  await p.waitForTimeout(2_500);
+
+  expect(await p.locator('[data-hero]').getAttribute('data-hero')).not.toBe('live');
+  expect(
+    requested.filter((url) => /three\.module|GLTFLoader|meshopt_decoder|hero-model\.glb/.test(url)),
+    'the 3D hero was fetched at 360px',
+  ).toEqual([]);
 });
 
 /**

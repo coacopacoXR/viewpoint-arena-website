@@ -15,10 +15,20 @@
  * never leaves `still`.
  */
 import { ASSETS, sizesFor, stillSrc, stillSrcset } from '../lib/assets';
+import type { FigureCounter } from '../lib/figures';
 import { withBase } from '../lib/links';
 
-/** CONTENT.md `/ HERO`, verbatim. */
-const CAPTION = "FIG. 00 — An 800-part STEP-derived test assembly from the app's perf fixtures. On desktop, hover a part: it lights #0044AA, the app's selection colour.";
+interface Props {
+  /** The page's figure counter; the hero is the first figure, `FIG. 00`. */
+  figs?: FigureCounter;
+}
+
+const { figs } = Astro.props;
+
+/** CONTENT.md `/ HERO`, verbatim, minus the `FIG. 00 — ` the counter supplies. */
+const CAPTION =
+  "An 800-part STEP-derived test assembly from the app's perf fixtures. On desktop, hover a part: it lights #0044AA, the app's selection colour.";
+const caption = figs ? `${figs.next()} — ${CAPTION}` : CAPTION;
 const still = ASSETS['hero-model'];
 const sizes = sizesFor(5, 8);
 ---
@@ -55,7 +65,7 @@ const sizes = sizesFor(5, 8);
     </p>
   </div>
 
-  <figcaption class="hero-model__caption">{CAPTION}</figcaption>
+  <figcaption class="hero-model__caption">{caption}</figcaption>
 </figure>
 
 <script>

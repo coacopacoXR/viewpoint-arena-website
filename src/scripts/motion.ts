@@ -92,19 +92,28 @@ function setupReveals(): void {
   }
 
   /* §4 [01]: paragraphs reveal line by line, masked. SplitText's `aria: auto`
-     default puts `aria-label` on the original element and `aria-hidden` on the
-     pieces, so the accessible name never changes (§5). */
+     puts `aria-label` on the original element and `aria-hidden` on the pieces,
+     which is right for a heading (it may be named) and prohibited on a `<p>`
+     (aria-prohibited-attr), where the masked lines stay in the accessibility
+     tree and read in order instead. */
   for (const el of gsap.utils.toArray<HTMLElement>('[data-reveal="lines"]')) {
-    /* SplitText derives that label from `textContent`, which joins block lines
-       without a space; `Display` sets the intended name, so put it back. */
-    const label = el.getAttribute('aria-label');
+    const nameable = el.matches('h1, h2, h3, h4, h5, h6');
+    /* `Display` sets the intended name as one span per line; SplitText would
+       otherwise derive it from `textContent`, which glues the lines together. */
+    const intended = nameable
+      ? Array.from(el.children)
+          .map((line) => line.textContent?.trim() ?? '')
+          .filter(Boolean)
+          .join(' ')
+      : '';
     const split = new SplitText(el, {
       type: 'lines',
       mask: 'lines',
       linesClass: 'split-line',
       autoSplit: true,
+      aria: nameable ? 'auto' : 'none',
     });
-    if (label) el.setAttribute('aria-label', label);
+    if (intended) el.setAttribute('aria-label', intended);
     splits.push(split);
     gsap.from(split.lines, {
       yPercent: 105,

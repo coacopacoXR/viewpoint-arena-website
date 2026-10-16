@@ -13,11 +13,12 @@
  *  3. neither — a `--paper-2` mat with the mono text `ASSET PENDING · <name>`,
  *              for the slots CONTENT.md marks that have no capture.
  *
- * Captions are copy: they come from the registry (ASSETS.md) or from the caller
- * (CONTENT.md), never composed here.
+ * Captions are copy: the words come from the registry (ASSETS.md) or from the
+ * caller (CONTENT.md), never composed here. Only the `FIG. nn` in front of them
+ * is generated — by the page's figure counter, in document order.
  */
 import {
-  figureCaption,
+  assetCaption,
   getAsset,
   hasAsset,
   pendingText,
@@ -28,12 +29,16 @@ import {
   videoSrc,
   type AssetName,
 } from '../lib/assets';
+import type { FigureCounter } from '../lib/figures';
 
 interface Props {
   /** Registry name, e.g. `laser`. Unknown names render the pending mat. */
   name: string;
-  /** `FIG. nn` of the section this figure sits in, used with the registry caption. */
-  fig?: string;
+  /**
+   * The page's figure counter (src/lib/figures.ts). Only a figure that has
+   * caption copy draws a number from it, so the sequence stays gapless.
+   */
+  figs?: FigureCounter;
   /** Overrides the registry's alt (the hero still is described by HeroModel). */
   alt?: string;
   /** Overrides the registry caption entirely. */
@@ -52,7 +57,7 @@ interface Props {
 
 const {
   name,
-  fig,
+  figs,
   alt,
   caption,
   sizes,
@@ -65,8 +70,13 @@ const {
 
 const asset = hasAsset(name) ? getAsset(name) : null;
 const text = alt ?? asset?.alt ?? '';
+/* An explicit `caption` is copy and is used verbatim. Otherwise the registry
+   supplies the text after the dash and the page's counter supplies the number —
+   and a figure with no caption copy spends no number, so the printed sequence
+   has no gaps. */
+const body = asset && hasAsset(name) ? assetCaption(name) : undefined;
 const captionText =
-  caption ?? (fig && asset && hasAsset(name) ? figureCaption(fig, name) : undefined);
+  caption ?? (body ? (figs ? `${figs.next()} — ${body}` : body) : undefined);
 
 const resolvedSizes = sizes ?? sizesFor(span, spanMd);
 const mobileAsset =

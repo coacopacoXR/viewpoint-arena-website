@@ -32,6 +32,18 @@ SITE_BASE=/viewpoint-arena-website/ npm run build
 Every internal link and asset URL goes through `src/lib/links.ts` (`withBase` / `pageUrl`),
 so nothing has to be rewritten by hand.
 
+## Deploy
+
+GitHub Pages: `.github/workflows/deploy.yml` builds on push to `site/astro` and publishes
+`dist/` with `actions/deploy-pages`, setting `SITE_BASE=/viewpoint-arena-website/` unless a
+`CNAME` file exists (a custom domain is served from `/`). Point the repo's Pages setting at
+GitHub Actions and nothing else needs configuring.
+
+Vercel: import the repository and `vercel.json` takes it from there — `npm run build`,
+`outputDirectory: dist`, clean URLs, and a year of immutable caching for `/_astro/*` and
+`/assets/*`. Both hosts build fine without the sibling app checkout: the changelog prebuild
+keeps the committed copy when `viewpoint-arena-public` is absent.
+
 ## Where the content comes from
 
 Nothing on this site is invented. The copy is authored from the app repository
@@ -49,10 +61,11 @@ src/
                 Button, Command, SpecTable, Limit, Figure, Stat, Marquee)
   layouts/      Base.astro — head, theme script, skip link, blueprint layer, nav, footer
   lib/          site copy constants, base-aware link helpers, shared prop types
-  pages/        /, /install, /how-it-works, /changelog, 404
+  fonts/        the two variable woff2, subset by scripts/fonts/subset.mjs
+  pages/        /, /install, /how-it-works, /changelog, 404, robots.txt
   scripts/      motion.ts (one motion entry) + tiny nav / theme / copy / video modules
   styles/       tokens.css, base.css, fonts.css, motion.css
-tests/          layout.spec.ts
+tests/          layout, assets, a11y and build specs
 ```
 
 Design tokens live in `src/styles/tokens.css` and are the only source of colours, type
