@@ -5,6 +5,12 @@
  * stack, `--signal` for the browser→room path, dashed boxes for the optional
  * externals that sit outside the machine boundary.
  *
+ * Verified against the app's `docker-compose.yml` and `deploy/nginx/*.conf`:
+ * nginx-proxy forwards `/` and `/api/capture/` to `app:80`; `app`'s own nginx
+ * serves the static build and proxies `/api/*` to `api`; nginx-proxy also
+ * proxies `/rest/v1/` and `/realtime/v1/` straight to the Supabase layer, which
+ * is why the Database box has an edge from nginx as well as from api.
+ *
  * Two variants of the same drawing: a wide one from 768px up and a stacked one
  * below it, so the labels stay readable at 360px with no horizontal scroll
  * (§3). Only one is ever displayed, so only one is in the accessibility tree;
@@ -12,8 +18,10 @@
  */
 const FLOWS = [
   'Browser → nginx — HTTPS 443 and WSS 8443',
-  'nginx → api',
-  'nginx → Room server',
+  'nginx → app — the static files',
+  'nginx → Room server — WSS 8443',
+  'nginx → Database — rest · realtime, proxied straight to the Supabase layer',
+  'app → api — /api/*',
   'api → convert-service',
   'api → capture-service',
   'api → Database',
@@ -26,17 +34,19 @@ const FLOWS = [
   <!-- ── wide variant, ≥768px ─────────────────────────────────────────── -->
   <svg
     class="arch__svg arch__svg--wide"
-    viewBox="0 0 960 680"
+    viewBox="0 0 960 760"
     role="img"
     aria-labelledby="arch-h-title arch-h-desc"
   >
     <title id="arch-h-title">Viewpoint Arena architecture</title>
     <desc id="arch-h-desc"
-      >Containers on one machine behind nginx: the api, the PartyKit room
-      server, convert-service, capture-service with Ollama, the Postgres
-      database, db-backup and coturn. Browsers reach nginx over HTTPS 443 and
-      WSS 8443, and reach each other over WebRTC through TURN. Optional
-      externals sit outside the machine.</desc
+      >Containers on one machine behind nginx: the app container that serves the
+      static files and proxies /api to the api, the PartyKit room server,
+      convert-service, capture-service with Ollama, the Postgres database,
+      db-backup and coturn. Browsers reach nginx over HTTPS 443 and WSS 8443;
+      nginx forwards /rest/v1/ and /realtime/v1/ straight to the database layer,
+      and browsers reach each other over WebRTC through TURN. Optional externals
+      sit outside the machine.</desc
     >
     <defs>
       <marker
@@ -64,13 +74,13 @@ const FLOWS = [
     </defs>
 
     <!-- machine boundary -->
-    <rect class="arch__boundary" x="20" y="130" width="720" height="520" />
+    <rect class="arch__boundary" x="20" y="130" width="720" height="600" />
     <text class="arch__note" x="36" y="158">ONE MACHINE · DOCKER COMPOSE</text>
 
     <!-- the browser→room path, in signal blue -->
     <path
       class="arch__flow arch__flow--signal"
-      d="M 420 88 V 134 H 135 V 176"
+      d="M 420 88 V 134 H 135 V 172"
       marker-end="url(#arch-h-head-signal)"
     />
     <text class="arch__flowlabel arch__flowlabel--signal" x="280" y="124"
@@ -78,40 +88,39 @@ const FLOWS = [
     >
     <path
       class="arch__flow arch__flow--signal"
-      d="M 210 216 H 296"
+      d="M 210 212 H 296"
       marker-end="url(#arch-h-head-signal)"
     />
 
     <!-- the rest of the stack, in ink -->
+    <path class="arch__flow" d="M 135 248 V 276" marker-end="url(#arch-h-head)" />
+    <path class="arch__flow" d="M 135 352 V 380" marker-end="url(#arch-h-head)" />
+    <path class="arch__flow" d="M 210 420 H 296" marker-end="url(#arch-h-head)" />
+    <path class="arch__flow" d="M 135 456 V 484" marker-end="url(#arch-h-head)" />
     <path
       class="arch__flow"
-      d="M 135 252 V 296"
+      d="M 210 440 H 250 V 524 H 296"
       marker-end="url(#arch-h-head)"
     />
+
+    <!-- nginx proxies the Supabase REST and realtime layers itself -->
     <path
       class="arch__flow"
-      d="M 210 336 H 296"
+      d="M 60 212 H 40 V 524 H 56"
       marker-end="url(#arch-h-head)"
     />
-    <path
-      class="arch__flow"
-      d="M 135 372 V 416"
-      marker-end="url(#arch-h-head)"
-    />
-    <path
-      class="arch__flow"
-      d="M 210 356 H 250 V 456 H 296"
-      marker-end="url(#arch-h-head)"
-    />
+    <text class="arch__flowlabel" x="32" y="380" transform="rotate(-90 32 380)"
+      >rest · realtime</text
+    >
 
     <!-- browser ↔ browser, relayed by TURN -->
     <path
       class="arch__flow"
-      d="M 600 52 H 726 V 576 H 484"
+      d="M 600 52 H 726 V 628 H 484"
       marker-start="url(#arch-h-head)"
       marker-end="url(#arch-h-head)"
     />
-    <text class="arch__flowlabel" x="716" y="330" transform="rotate(90 716 330)"
+    <text class="arch__flowlabel" x="716" y="340" transform="rotate(90 716 340)"
       >WEBRTC · VIA TURN</text
     >
 
@@ -122,42 +131,48 @@ const FLOWS = [
       <text class="arch__sub" x="480" y="66">React 19, three.js, Zustand</text>
     </g>
     <g class="arch__node">
-      <rect class="arch__box" x="60" y="180" width="150" height="72" />
-      <text class="arch__label" x="135" y="210">nginx</text>
-      <text class="arch__sub" x="135" y="230">443, 8443</text>
+      <rect class="arch__box" x="60" y="176" width="150" height="72" />
+      <text class="arch__label" x="135" y="206">nginx</text>
+      <text class="arch__sub" x="135" y="226">443, 8443</text>
     </g>
     <g class="arch__node">
-      <rect class="arch__box" x="300" y="180" width="180" height="72" />
-      <text class="arch__label" x="390" y="210">Room server</text>
-      <text class="arch__sub" x="390" y="230">PartyKit, local</text>
+      <rect class="arch__box" x="300" y="176" width="180" height="72" />
+      <text class="arch__label" x="390" y="206">Room server</text>
+      <text class="arch__sub" x="390" y="226">PartyKit, local</text>
     </g>
     <g class="arch__node">
-      <rect class="arch__box" x="60" y="300" width="150" height="72" />
-      <text class="arch__label" x="135" y="341">api</text>
+      <rect class="arch__box" x="60" y="280" width="150" height="72" />
+      <text class="arch__label" x="135" y="302">app</text>
+      <text class="arch__sub" x="135" y="322">static files ·</text>
+      <text class="arch__sub" x="135" y="338">proxies /api</text>
     </g>
     <g class="arch__node">
-      <rect class="arch__box" x="300" y="300" width="180" height="72" />
-      <text class="arch__label" x="390" y="330">convert-service</text>
-      <text class="arch__sub" x="390" y="350">OpenCascade → GLB</text>
+      <rect class="arch__box" x="60" y="384" width="150" height="72" />
+      <text class="arch__label" x="135" y="425">api</text>
     </g>
     <g class="arch__node">
-      <rect class="arch__box" x="60" y="420" width="150" height="72" />
-      <text class="arch__label" x="135" y="450">Database</text>
-      <text class="arch__sub" x="135" y="470">Postgres / Supabase</text>
+      <rect class="arch__box" x="300" y="384" width="180" height="72" />
+      <text class="arch__label" x="390" y="414">convert-service</text>
+      <text class="arch__sub" x="390" y="434">OpenCascade → GLB</text>
     </g>
     <g class="arch__node">
-      <rect class="arch__box" x="300" y="420" width="180" height="72" />
-      <text class="arch__label" x="390" y="450">capture-service</text>
-      <text class="arch__sub" x="390" y="470">Whisper + Ollama</text>
+      <rect class="arch__box" x="60" y="488" width="150" height="72" />
+      <text class="arch__label" x="135" y="518">Database</text>
+      <text class="arch__sub" x="135" y="538">Postgres / Supabase</text>
     </g>
     <g class="arch__node">
-      <rect class="arch__box" x="60" y="540" width="150" height="72" />
-      <text class="arch__label" x="135" y="581">db-backup</text>
+      <rect class="arch__box" x="300" y="488" width="180" height="72" />
+      <text class="arch__label" x="390" y="518">capture-service</text>
+      <text class="arch__sub" x="390" y="538">Whisper + Ollama</text>
     </g>
     <g class="arch__node">
-      <rect class="arch__box" x="300" y="540" width="180" height="72" />
-      <text class="arch__label" x="390" y="570">TURN</text>
-      <text class="arch__sub" x="390" y="590">coturn</text>
+      <rect class="arch__box" x="60" y="592" width="150" height="72" />
+      <text class="arch__label" x="135" y="633">db-backup</text>
+    </g>
+    <g class="arch__node">
+      <rect class="arch__box" x="300" y="592" width="180" height="72" />
+      <text class="arch__label" x="390" y="622">TURN</text>
+      <text class="arch__sub" x="390" y="642">coturn</text>
     </g>
 
     <!-- optional externals, outside the machine -->
@@ -184,17 +199,19 @@ const FLOWS = [
   <!-- ── stacked variant, below 768px ─────────────────────────────────── -->
   <svg
     class="arch__svg arch__svg--stack"
-    viewBox="0 0 360 1240"
+    viewBox="0 0 360 1340"
     role="img"
     aria-labelledby="arch-v-title arch-v-desc"
   >
     <title id="arch-v-title">Viewpoint Arena architecture</title>
     <desc id="arch-v-desc"
       >The same stack drawn top to bottom: browsers reach nginx over HTTPS 443
-      and WSS 8443; nginx serves the api and the PartyKit room server; the api
-      reaches convert-service, capture-service and the Postgres database;
-      capture-service runs Whisper and Ollama; db-backup and coturn complete
-      the machine. Browsers reach each other over WebRTC through TURN.</desc
+      and WSS 8443; nginx serves the PartyKit room server, forwards the static
+      files to the app container and proxies rest and realtime straight to the
+      Postgres database; the app proxies /api to the api, which reaches
+      convert-service, capture-service and the database; capture-service runs
+      Whisper and Ollama; db-backup and coturn complete the machine. Browsers
+      reach each other over WebRTC through TURN.</desc
     >
     <defs>
       <marker
@@ -221,8 +238,8 @@ const FLOWS = [
       </marker>
     </defs>
 
-    <rect class="arch__boundary" x="20" y="112" width="320" height="800" />
-    <text class="arch__note" x="32" y="104">ONE MACHINE · DOCKER COMPOSE</text>
+    <rect class="arch__boundary" x="12" y="112" width="328" height="900" />
+    <text class="arch__note" x="24" y="104">ONE MACHINE · DOCKER COMPOSE</text>
 
     <path
       class="arch__flow arch__flow--signal"
@@ -234,21 +251,26 @@ const FLOWS = [
       d="M 180 192 V 224"
       marker-end="url(#arch-v-head-signal)"
     />
-    <path class="arch__flow" d="M 48 160 H 32 V 356 H 44" marker-end="url(#arch-v-head)" />
+    <path class="arch__flow" d="M 48 160 H 39 V 360 H 44" marker-end="url(#arch-v-head)" />
     <path class="arch__flow" d="M 180 392 V 424" marker-end="url(#arch-v-head)" />
+    <path class="arch__flow" d="M 180 492 V 524" marker-end="url(#arch-v-head)" />
     <path
       class="arch__flow"
-      d="M 312 344 H 320 V 560 H 316"
+      d="M 312 452 H 320 V 660 H 316"
       marker-end="url(#arch-v-head)"
     />
-    <path class="arch__flow" d="M 48 376 H 32 V 660 H 44" marker-end="url(#arch-v-head)" />
+    <path class="arch__flow" d="M 48 476 H 39 V 768 H 44" marker-end="url(#arch-v-head)" />
+    <path class="arch__flow" d="M 48 176 H 30 V 744 H 44" marker-end="url(#arch-v-head)" />
+    <text class="arch__flowlabel" x="22" y="460" transform="rotate(-90 22 460)"
+      >rest · realtime</text
+    >
     <path
       class="arch__flow"
-      d="M 312 44 H 332 V 860 H 316"
+      d="M 312 44 H 332 V 960 H 316"
       marker-start="url(#arch-v-head)"
       marker-end="url(#arch-v-head)"
     />
-    <text class="arch__flowlabel" x="344" y="460" transform="rotate(90 344 460)"
+    <text class="arch__flowlabel" x="344" y="500" transform="rotate(90 344 500)"
       >WEBRTC · VIA TURN</text
     >
 
@@ -269,50 +291,55 @@ const FLOWS = [
     </g>
     <g class="arch__node">
       <rect class="arch__box" x="48" y="328" width="264" height="64" />
-      <text class="arch__label" x="180" y="364">api</text>
+      <text class="arch__label" x="180" y="354">app</text>
+      <text class="arch__sub" x="180" y="372">static files · proxies /api</text>
     </g>
     <g class="arch__node">
       <rect class="arch__box" x="48" y="428" width="264" height="64" />
-      <text class="arch__label" x="180" y="454">convert-service</text>
-      <text class="arch__sub" x="180" y="472">OpenCascade → GLB</text>
+      <text class="arch__label" x="180" y="464">api</text>
     </g>
     <g class="arch__node">
       <rect class="arch__box" x="48" y="528" width="264" height="64" />
-      <text class="arch__label" x="180" y="554">capture-service</text>
-      <text class="arch__sub" x="180" y="572">Whisper + Ollama</text>
+      <text class="arch__label" x="180" y="554">convert-service</text>
+      <text class="arch__sub" x="180" y="572">OpenCascade → GLB</text>
     </g>
     <g class="arch__node">
       <rect class="arch__box" x="48" y="628" width="264" height="64" />
-      <text class="arch__label" x="180" y="654">Database</text>
-      <text class="arch__sub" x="180" y="672">Postgres / Supabase</text>
+      <text class="arch__label" x="180" y="654">capture-service</text>
+      <text class="arch__sub" x="180" y="672">Whisper + Ollama</text>
     </g>
     <g class="arch__node">
       <rect class="arch__box" x="48" y="728" width="264" height="64" />
-      <text class="arch__label" x="180" y="764">db-backup</text>
+      <text class="arch__label" x="180" y="754">Database</text>
+      <text class="arch__sub" x="180" y="772">Postgres / Supabase</text>
     </g>
     <g class="arch__node">
       <rect class="arch__box" x="48" y="828" width="264" height="64" />
-      <text class="arch__label" x="180" y="854">TURN</text>
-      <text class="arch__sub" x="180" y="872">coturn</text>
+      <text class="arch__label" x="180" y="864">db-backup</text>
+    </g>
+    <g class="arch__node">
+      <rect class="arch__box" x="48" y="928" width="264" height="64" />
+      <text class="arch__label" x="180" y="954">TURN</text>
+      <text class="arch__sub" x="180" y="972">coturn</text>
     </g>
 
-    <text class="arch__note" x="48" y="928">OPTIONAL · ONLY IF YOU</text>
-    <text class="arch__note" x="48" y="942">CHOOSE THEM AT INSTALL</text>
+    <text class="arch__note" x="48" y="1028">OPTIONAL · ONLY IF YOU</text>
+    <text class="arch__note" x="48" y="1042">CHOOSE THEM AT INSTALL</text>
     <g class="arch__node arch__node--optional">
-      <rect class="arch__box arch__box--dashed" x="48" y="952" width="264" height="56" />
-      <text class="arch__label" x="180" y="984">OpenAI / Anthropic</text>
+      <rect class="arch__box arch__box--dashed" x="48" y="1052" width="264" height="56" />
+      <text class="arch__label" x="180" y="1084">OpenAI / Anthropic</text>
     </g>
     <g class="arch__node arch__node--optional">
-      <rect class="arch__box arch__box--dashed" x="48" y="1024" width="264" height="56" />
-      <text class="arch__label" x="180" y="1056">Cloudflare TURN</text>
+      <rect class="arch__box arch__box--dashed" x="48" y="1124" width="264" height="56" />
+      <text class="arch__label" x="180" y="1156">Cloudflare TURN</text>
     </g>
     <g class="arch__node arch__node--optional">
-      <rect class="arch__box arch__box--dashed" x="48" y="1096" width="264" height="56" />
-      <text class="arch__label" x="180" y="1128">Teams webhook</text>
+      <rect class="arch__box arch__box--dashed" x="48" y="1196" width="264" height="56" />
+      <text class="arch__label" x="180" y="1228">Teams webhook</text>
     </g>
     <g class="arch__node arch__node--optional">
-      <rect class="arch__box arch__box--dashed" x="48" y="1168" width="264" height="56" />
-      <text class="arch__label" x="180" y="1200">Onshape / Teamcenter</text>
+      <rect class="arch__box arch__box--dashed" x="48" y="1268" width="264" height="56" />
+      <text class="arch__label" x="180" y="1300">Onshape / Teamcenter</text>
     </g>
   </svg>
 

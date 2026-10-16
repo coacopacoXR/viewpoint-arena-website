@@ -1,14 +1,13 @@
 ---
 /**
  * HERO (CONTENT.md `/ HERO`, DESIGN.md §4: line reveal + outline fill on line 2).
- * The model itself is wired in task 05 (`HeroModel`); until then the slot shows
- * the pending mat at its final 1:1 size.
+ * The model slot is `HeroModel`: the hero-model still for everyone, and the 3D
+ * canvas over it only where §5 allows it.
  */
 import Button from '../Button.astro';
 import Display from '../Display.astro';
-import Figure from '../Figure.astro';
+import HeroModel from '../HeroModel.astro';
 import SrcTag from '../SrcTag.astro';
-import { HERO_MODEL, pendingText } from '../../lib/assets';
 import { SITE } from '../../lib/site';
 ---
 
@@ -56,14 +55,7 @@ import { SITE } from '../../lib/site';
     </div>
 
     <div class="hero__fig" style="--span: 5; --span-md: 8;">
-      <Figure
-        name="hero-model"
-        pending={pendingText('hero-model')}
-        alt="The model rendered with the app's selection glow, #0044AA."
-        width={HERO_MODEL.width}
-        height={HERO_MODEL.height}
-        caption="FIG. 00 — hero-model rendered with the app's selection glow, #0044AA."
-      />
+      <HeroModel />
     </div>
   </div>
 </section>

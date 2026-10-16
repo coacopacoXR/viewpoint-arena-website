@@ -2,99 +2,132 @@
 /**
  * Figure (DESIGN.md §5, §7).
  *
- * Three states:
- *  1. `src`   — a real capture: `<img>` with explicit width/height, lazy,
- *               async decoding, optional srcset, and `eager` + high fetch
- *               priority for the hero.
- *  2. `video` — mp4, `preload="none"`, poster, plays only when in view and
- *               never under reduced motion (src/scripts/video.ts).
- *  3. neither — a `--paper-2` mat at the given aspect ratio with the mono text
- *               `ASSET PENDING · <name>`. This is how sections get built before
- *               the captures exist (task 04).
+ * Three states, decided by the asset registry in `src/lib/assets.ts`:
+ *  1. still  — `<picture>` with the webp `srcset` at every width that exists
+ *              (640/1280/1920, never upscaled), `sizes` matching the columns the
+ *              figure occupies, explicit intrinsic `width`/`height`, lazy and
+ *              async-decoded — or eager with `fetchpriority="high"` for the hero.
+ *  2. video  — mp4, `muted playsinline loop preload="none"` + poster webp; it
+ *              plays only in view and never under reduced motion
+ *              (src/scripts/video.ts).
+ *  3. neither — a `--paper-2` mat with the mono text `ASSET PENDING · <name>`,
+ *              for the slots CONTENT.md marks that have no capture.
+ *
+ * Captions are copy: they come from the registry (ASSETS.md) or from the caller
+ * (CONTENT.md), never composed here.
  */
-import { withBase } from '../lib/links';
+import {
+  figureCaption,
+  getAsset,
+  hasAsset,
+  pendingText,
+  posterSrc,
+  sizesFor,
+  stillSrc,
+  stillSrcset,
+  videoSrc,
+  type AssetName,
+} from '../lib/assets';
 
 interface Props {
-  /** Path under `public/`, e.g. `/assets/laser.webp`. */
-  src?: string;
-  /** Path under `public/`, e.g. `/assets/big-assembly.mp4`. */
-  video?: string;
-  /** Poster for `video`. */
-  poster?: string;
-  /** Required. Empty string only for a purely decorative figure. */
-  alt: string;
+  /** Registry name, e.g. `laser`. Unknown names render the pending mat. */
+  name: string;
+  /** `FIG. nn` of the section this figure sits in, used with the registry caption. */
+  fig?: string;
+  /** Overrides the registry's alt (the hero still is described by HeroModel). */
+  alt?: string;
+  /** Overrides the registry caption entirely. */
   caption?: string;
-  /** Intrinsic pixel size — always set, so nothing shifts on load (§7). */
-  width: number;
-  height: number;
-  /** Asset name used by the pending mat, e.g. `meeting-cards`. */
-  name?: string;
-  /** Overrides the whole pending text, e.g. to add `NEEDS DOCKER`. */
-  pending?: string;
-  srcset?: string;
+  /** Explicit `sizes`; defaults to the figure's column spans. */
   sizes?: string;
+  /** 12-col span at ≥1024px / 8-col span at 640–1023px. */
+  span?: number;
+  spanMd?: number;
   /** Hero only: load eagerly with a high fetch priority (§7). */
   eager?: boolean;
+  /** A different capture to show below 640px, when the wide one crops badly. */
+  mobileName?: AssetName;
   class?: string;
 }
 
 const {
-  src,
-  video,
-  poster,
+  name,
+  fig,
   alt,
   caption,
-  width,
-  height,
-  name,
-  pending,
-  srcset,
   sizes,
+  span = 12,
+  spanMd = 8,
   eager = false,
+  mobileName,
   class: className,
 } = Astro.props;
 
-const pendingText = pending ?? `ASSET PENDING · ${name ?? 'unnamed asset'}`;
-const ratio = `${width} / ${height}`;
-const assetUrl = (p: string) => withBase(p);
+const asset = hasAsset(name) ? getAsset(name) : null;
+const text = alt ?? asset?.alt ?? '';
+const captionText =
+  caption ?? (fig && asset && hasAsset(name) ? figureCaption(fig, name) : undefined);
+
+const resolvedSizes = sizes ?? sizesFor(span, spanMd);
+const mobileAsset =
+  mobileName && hasAsset(mobileName) && getAsset(mobileName).kind === 'still'
+    ? getAsset(mobileName)
+    : null;
+const mobileSrcset = mobileName && hasAsset(mobileName) ? stillSrcset(mobileName) : undefined;
+
+const ratio = asset ? `${asset.width} / ${asset.height}` : '16 / 10';
+const mobileRatio = mobileAsset ? `${mobileAsset.width} / ${mobileAsset.height}` : undefined;
 ---
 
-<figure class:list={['figure', className]} style={`--figure-ratio: ${ratio};`}>
+<figure
+  class:list={['figure', className]}
+  style={`--figure-ratio: ${ratio};${mobileRatio ? ` --figure-ratio-mobile: ${mobileRatio};` : ''}`}
+>
   <div class="figure__frame">
-    {src ? (
-      <img
-        src={assetUrl(src)}
-        alt={alt}
-        width={width}
-        height={height}
-        loading={eager ? 'eager' : 'lazy'}
-        decoding="async"
-        fetchpriority={eager ? 'high' : undefined}
-        srcset={srcset}
-        sizes={sizes}
-      />
-    ) : video ? (
-      <div class="figure__video" role="img" aria-label={alt}>
+    {asset?.kind === 'still' && hasAsset(name) ? (
+      <picture>
+        {mobileSrcset && (
+          <source media="(max-width: 639px)" type="image/webp" srcset={mobileSrcset} sizes="100vw" />
+        )}
+        <source
+          type="image/webp"
+          srcset={stillSrcset(name)}
+          sizes={mobileSrcset ? `(min-width: 640px) ${resolvedSizes}` : resolvedSizes}
+        />
+        <img
+          src={stillSrc(name)}
+          alt={text}
+          width={asset.width}
+          height={asset.height}
+          loading={eager ? 'eager' : 'lazy'}
+          decoding="async"
+          fetchpriority={eager ? 'high' : undefined}
+          sizes={mobileSrcset ? `(min-width: 640px) ${resolvedSizes}` : resolvedSizes}
+          srcset={stillSrcset(name)}
+        />
+      </picture>
+    ) : asset?.kind === 'video' && hasAsset(name) ? (
+      <div class="figure__video" role="img" aria-label={text}>
         <video
           muted
           playsinline
           loop
           preload="none"
-          width={width}
-          height={height}
-          poster={poster ? assetUrl(poster) : undefined}
+          width={asset.width}
+          height={asset.height}
+          poster={posterSrc(name)}
           data-video-in-view
         >
-          <source src={assetUrl(video)} type="video/mp4" />
+          <source src={videoSrc(name)} type="video/mp4" />
         </video>
       </div>
     ) : (
-      <div class="figure__mat" role="img" aria-label={alt}>
-        <span class="figure__pending">{pendingText}</span>
+      <div class="figure__mat" role="img" aria-label={text || pendingText(name)}>
+        <span class="figure__pending">{pendingText(name)}</span>
       </div>
     )}
   </div>
-  {caption && <figcaption class="figure__caption">{caption}</figcaption>}
+  {captionText && <figcaption class="figure__caption">{captionText}</figcaption>}
 </figure>
 
 <script>
@@ -113,6 +146,13 @@ const assetUrl = (p: string) => withBase(p);
     border: var(--hairline) solid var(--rule);
     border-radius: var(--r-box);
     overflow: hidden;
+  }
+
+  /* a mobile-only capture keeps its own ratio (the tall panel column) */
+  @media (max-width: 639px) {
+    .figure__frame {
+      aspect-ratio: var(--figure-ratio-mobile, var(--figure-ratio));
+    }
   }
 
   .figure__frame img,

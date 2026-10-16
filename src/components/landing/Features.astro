@@ -7,17 +7,22 @@
 import Display from '../Display.astro';
 import Figure from '../Figure.astro';
 import SectionHead from '../SectionHead.astro';
-import { SHOT, pendingText } from '../../lib/assets';
+import type { AssetName, SlotName } from '../../lib/assets';
 
 interface Card {
   title: string;
   body: string;
-  asset: string;
+  /** A CONTENT.md `{{slot}}`: a shipped capture, or one still pending. */
+  asset: SlotName;
   /** 12-col span at ≥1024px / 8-col span at 640–1023px. */
-  span: string;
-  spanMd: string;
+  span: number;
+  spanMd: number;
   /** Wide cards set the figure beside the text. */
   split?: boolean;
+  /** Narrow captures read better full width than cropped to 16:10. */
+  mobile?: AssetName;
+  /** A second capture, when the card's copy names two things. */
+  also?: AssetName;
 }
 
 const CARDS: Card[] = [
@@ -25,67 +30,69 @@ const CARDS: Card[] = [
     title: 'Laser and selection',
     body: `Point at a part; it glows for everyone in the room, in the same blue as this sentence's links.`,
     asset: 'laser',
-    span: '7',
-    spanMd: '4',
+    span: 7,
+    spanMd: 4,
     split: true,
   },
   {
     title: 'Pins on parts',
     body: `Pin a comment to the part it's about, not to a coordinate on a screenshot.`,
     asset: 'pins',
-    span: '5',
-    spanMd: '4',
+    span: 5,
+    spanMd: 4,
   },
   {
     title: 'Lead and follow',
     body: `One person leads, the room follows. Look around freely; the view comes back on its own.`,
     asset: 'follow',
-    span: '5',
-    spanMd: '4',
+    span: 5,
+    spanMd: 4,
   },
   {
     title: 'Split screen',
     body: `Your own view on the left, exactly what a colleague sees on the right.`,
     asset: 'split',
-    span: '7',
-    spanMd: '4',
+    span: 7,
+    spanMd: 4,
     split: true,
   },
   {
     title: 'Model Tree',
     body: `Every part of the assembly, by name, as the file defines it. Select from the tree or from the model.`,
     asset: 'tree',
-    span: '4',
-    spanMd: '4',
+    span: 4,
+    spanMd: 4,
   },
   {
     title: 'Sessions and variants',
     body: `Each meeting is a session. Branch a variant, move parts with undo, then adopt it or drop it. The reasons are kept either way.`,
     asset: 'variants',
-    span: '4',
-    spanMd: '4',
+    span: 4,
+    spanMd: 4,
   },
   {
     title: 'Meeting capture',
     body: `Whisper transcribes; a local model through Ollama (qwen2.5:7b by default) writes risks, actions and rationale. You approve, reject or edit each card.`,
     asset: 'meeting-cards',
-    span: '4',
-    spanMd: '8',
+    span: 4,
+    spanMd: 8,
+    mobile: 'meeting-cards-panel',
+    also: 'card-record',
   },
   {
     title: 'Boardroom',
     body: `Video calls in the room, with a bundled TURN relay. Press 3D Arena to go back to the model.`,
-    asset: 'boardroom',
-    span: '7',
-    spanMd: '4',
+    asset: 'boardroom-clip',
+    span: 7,
+    spanMd: 4,
     split: true,
   },
   {
     title: 'Tracker and minutes',
     body: `Open actions follow you across sessions and reviews. Each meeting gets minutes.`,
     asset: 'tracker',
-    span: '5',
-    spanMd: '4',
+    span: 5,
+    spanMd: 4,
   },
 ];
 
@@ -116,11 +123,20 @@ const SMALL_PRINT =
             <Figure
               class="fcard__fig"
               name={card.asset}
-              pending={pendingText(card.asset)}
-              alt={card.title}
-              width={SHOT.width}
-              height={SHOT.height}
+              fig="FIG. 03"
+              span={card.split ? (card.span * 7) / 12 : card.span}
+              spanMd={card.spanMd}
+              mobileName={card.mobile}
             />
+            {card.also && (
+              <Figure
+                class="fcard__fig"
+                name={card.also}
+                fig="FIG. 03"
+                span={card.span}
+                spanMd={card.spanMd}
+              />
+            )}
             <div class="fcard__text">
               <h3 class="fcard__name t-h3">{card.title}</h3>
               <p class="fcard__body">{card.body}</p>

@@ -10,7 +10,6 @@ import Limit from '../Limit.astro';
 import SectionHead from '../SectionHead.astro';
 import SrcTag from '../SrcTag.astro';
 import Stat from '../Stat.astro';
-import { BIG_ASSEMBLY, pendingText } from '../../lib/assets';
 ---
 
 <section class="asm section" id="assemblies" aria-labelledby="asm-title">
@@ -34,13 +33,7 @@ import { BIG_ASSEMBLY, pendingText } from '../../lib/assets';
       </p>
 
       <div class="asm__fig" style="--span: 7; --span-md: 8;">
-        <Figure
-          name="big-assembly"
-          pending={pendingText('big-assembly')}
-          alt="A 10 000-part assembly, one part selected, orbiting."
-          width={BIG_ASSEMBLY.width}
-          height={BIG_ASSEMBLY.height}
-        />
+        <Figure name="big-assembly" fig="FIG. 04" span={7} />
       </div>
 
       {/* 2×2 grid of huge numbers (§4 [04], task 02) */}

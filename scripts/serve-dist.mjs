@@ -6,6 +6,8 @@
  * preview the operator may already have open on another port; a static build
  * needs nothing more than this to be measured the way a visitor gets it.
  *
+ * Default port 4322: 4321 belongs to `astro dev`, which the operator runs.
+ *
  * Usage: node scripts/serve-dist.mjs [port]   (PORT env also honoured)
  */
 import { createServer } from 'node:http';
@@ -13,7 +15,7 @@ import { readFile } from 'node:fs/promises';
 import { extname, join, normalize, resolve } from 'node:path';
 
 const root = resolve('dist');
-const port = Number(process.argv[2] ?? process.env.PORT ?? 4321);
+const port = Number(process.argv[2] ?? process.env.PORT ?? 4322);
 /* honour the same SITE_BASE the build used, so a sub-path deploy is testable */
 const rawBase = process.env.SITE_BASE ?? '/';
 const base = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
@@ -29,6 +31,7 @@ const TYPES = {
   '.webp': 'image/webp',
   '.woff2': 'font/woff2',
   '.mp4': 'video/mp4',
+  '.glb': 'model/gltf-binary',
   '.ico': 'image/x-icon',
 };
 

@@ -5,9 +5,11 @@ import { defineConfig, devices } from '@playwright/test';
  * scripts/serve-dist.mjs — the same bytes a static host would hand a visitor.
  * (`astro preview` allows only one instance per project, which would collide
  * with a preview the operator already has open on another port.)
+ * 4322 rather than 4321 on purpose: 4321 is Astro's dev port, and the operator
+ * usually has `astro dev` running there — the tests must never hit that server.
  * `SITE_BASE` is honoured so a sub-path deploy is testable too.
  */
-const PORT = Number(process.env.PORT ?? 4321);
+const PORT = Number(process.env.PORT ?? 4322);
 const HOST = '127.0.0.1';
 const rawBase = process.env.SITE_BASE ?? '/';
 const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;

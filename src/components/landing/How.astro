@@ -10,9 +10,15 @@
 import Display from '../Display.astro';
 import Figure from '../Figure.astro';
 import SectionHead from '../SectionHead.astro';
-import { SHOT, pendingText } from '../../lib/assets';
+import type { AssetName } from '../../lib/assets';
 
-const STEPS = [
+interface Step {
+  title: string;
+  body: string;
+  asset: AssetName;
+}
+
+const STEPS: Step[] = [
   {
     title: 'Open a review',
     body: `Create a design review in the lobby and import your file, or try the bundled sample. STEP, IGES and BREP are tessellated once on the server and handed to everyone as the same compressed GLB; the browser does it itself if the server can't.`,
@@ -33,7 +39,7 @@ const STEPS = [
     body: `Record, and the install transcribes the meeting with Whisper. A local model turns it into risk, action and rationale cards. End the session and they go to the tracker.`,
     asset: 'meeting-cards',
   },
-] as const;
+];
 ---
 
 <section class="how section" id="how" aria-labelledby="how-title">
@@ -60,13 +66,7 @@ const STEPS = [
                   <p class="how__stepbody">{step.body}</p>
                 </div>
                 <div class="how__fig">
-                  <Figure
-                    name={step.asset}
-                    pending={pendingText(step.asset)}
-                    alt={step.title}
-                    width={SHOT.width}
-                    height={SHOT.height}
-                  />
+                  <Figure name={step.asset} fig="FIG. 02" span={7} />
                 </div>
               </li>
             ))

@@ -1,0 +1,139 @@
+---
+/**
+ * HeroModel (DESIGN.md §5, §4 hero row, CONTENT.md `/ HERO`).
+ *
+ * The still is the content: a `<picture>` of the hero-model webps, eager with a
+ * high fetch priority (§7), and the only thing in the accessibility tree. The
+ * canvas is `aria-hidden` and is layered over it only when `src/scripts/hero.ts`
+ * decides the device, the motion preference, the network and WebGL all allow it —
+ * until then, and on every fallback, this is a plain image.
+ *
+ * `data-hero` is the state the gate and the 3D module write: `idle` → `loading`
+ * → `live`, or `still` for every path that keeps the image. While live,
+ * `data-hero-part` and `data-hero-glow` name the part under the pointer and the
+ * highlight it wears. The layout test asserts a phone-sized coarse-pointer page
+ * never leaves `still`.
+ */
+import { ASSETS, sizesFor, stillSrc, stillSrcset } from '../lib/assets';
+import { withBase } from '../lib/links';
+
+/** CONTENT.md `/ HERO`, verbatim. */
+const CAPTION = "FIG. 00 — An 800-part STEP-derived test assembly from the app's perf fixtures. On desktop, hover a part: it lights #0044AA, the app's selection colour.";
+const still = ASSETS['hero-model'];
+const sizes = sizesFor(5, 8);
+---
+
+<figure
+  class="hero-model"
+  data-hero="idle"
+  data-glb={withBase('/assets/hero-model.glb')}
+  style={`--hero-ratio: ${still.width} / ${still.height};`}
+>
+  <div class="hero-model__frame" data-hero-frame>
+    <picture>
+      <source type="image/webp" srcset={stillSrcset('hero-model')} sizes={sizes} />
+      <img
+        class="hero-model__still"
+        src={stillSrc('hero-model')}
+        alt={still.alt}
+        width={still.width}
+        height={still.height}
+        loading="eager"
+        decoding="async"
+        fetchpriority="high"
+        srcset={stillSrcset('hero-model')}
+        sizes={sizes}
+      />
+    </picture>
+
+    {/* the 3D layer: decorative, cross-faded in over the still once it has a
+        first frame on screen */}
+    <canvas class="hero-model__canvas" data-hero-canvas aria-hidden="true"></canvas>
+
+    <p class="hero-model__hint" data-hero-hint data-hint-touch="TAP A PART" hidden>
+      HOVER A PART
+    </p>
+  </div>
+
+  <figcaption class="hero-model__caption">{CAPTION}</figcaption>
+</figure>
+
+<script>
+  import '../scripts/hero';
+</script>
+
+<style>
+  .hero-model {
+    margin: 0;
+    min-width: 0;
+  }
+
+  .hero-model__frame {
+    position: relative;
+    aspect-ratio: var(--hero-ratio);
+    background-color: var(--paper-2);
+    border: var(--hairline) solid var(--rule);
+    border-radius: var(--r-box);
+    overflow: hidden;
+  }
+
+  .hero-model__still {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* the canvas is transparent where the model isn't, so the still has to go
+       as the 3D layer comes in, or two models would be on screen at once */
+    transition: opacity var(--dur-700) var(--ease-out);
+  }
+
+  .hero-model__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity var(--dur-700) var(--ease-out);
+  }
+
+  [data-hero='live'] .hero-model__canvas {
+    opacity: 1;
+  }
+
+  [data-hero='live'] .hero-model__still {
+    opacity: 0;
+  }
+
+  .hero-model__hint {
+    position: absolute;
+    inset-block-end: var(--sp-12);
+    inset-inline-start: var(--sp-12);
+    margin: 0;
+    padding: var(--sp-4) var(--sp-8);
+    background-color: var(--paper);
+    border: var(--hairline) solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  .hero-model__hint[hidden] {
+    display: none;
+  }
+
+  .hero-model__caption {
+    padding-block-start: var(--sp-12);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    text-transform: none;
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+</style>
