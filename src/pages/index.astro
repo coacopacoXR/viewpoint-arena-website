@@ -2,8 +2,8 @@
 /**
  * `/` — the landing page (CONTENT.md, DESIGN.md §6).
  * Section order: HERO → [01] why → [02] about → marquee → [03] how →
- * [04] features → [05] big assemblies → [06] nothing leaves → [07] install →
- * [08] what's next → closing CTA → footer. One component per section in
+ * [04] features → [05] nothing leaves → [06] install → [07] what's next →
+ * closing CTA → footer. One component per section in
  * components/landing/.
  *
  * The page owns the figure sequence: one counter, handed to the sections in the
@@ -12,7 +12,6 @@
  */
 import Base from '../layouts/Base.astro';
 import About from '../components/landing/About.astro';
-import Assemblies from '../components/landing/Assemblies.astro';
 import Closing from '../components/landing/Closing.astro';
 import Features from '../components/landing/Features.astro';
 import Hero from '../components/landing/Hero.astro';
@@ -36,7 +35,6 @@ const figs = figureCounter();
   <MarqueeBand />
   <How figs={figs} />
   <Features figs={figs} />
-  <Assemblies figs={figs} />
   <Privacy />
   <InstallTeaser />
   <Next />

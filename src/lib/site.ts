@@ -9,6 +9,8 @@ export const SITE = {
   license: 'Apache-2.0',
   repo: 'https://github.com/coacopacoXR/viewpoint-arena',
   repoLabel: 'github.com/coacopacoXR/viewpoint-arena',
+  /** Hosted demo with limited functionality; the full app is self-hosted. */
+  demo: 'https://viewpointarena.vercel.app/',
   /** Default git ref used by provenance tags. */
   ref: 'main',
 } as const;

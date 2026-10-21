@@ -170,7 +170,7 @@ test.describe('prefers-reduced-motion: reduce', () => {
     );
     expect(laterX, 'the marquee is still moving').toBe(state.bandX);
 
-    expect(state.videos.length).toBe(2);
+    expect(state.videos.length).toBe(1);
     for (const video of state.videos) {
       expect(video.paused, `${video.src} autoplays under reduced motion`).toBe(true);
       expect(video.time, `${video.src} advanced under reduced motion`).toBe(0);
@@ -198,8 +198,7 @@ test('home at 360px never loads the 3D hero', async ({ page: p }) => {
 
 /**
  * Landing-page behaviour (task 02): the section index tracks the section under
- * the middle of the viewport, [02] pins only on desktop, and the [04] counters
- * settle on the value the HTML already holds.
+ * the middle of the viewport and [03] pins only on desktop.
  */
 test.describe('home landing behaviour', () => {
   test('the section index highlights the section being read', async ({ page: p }) => {
@@ -219,7 +218,7 @@ test.describe('home landing behaviour', () => {
       .toBe('true');
   });
 
-  test('[02] pins on desktop and is a plain stack below 1024px', async ({ page: p }) => {
+  test('[03] pins on desktop and is a plain stack below 1024px', async ({ page: p }) => {
     await p.setViewportSize({ width: 1440, height: 900 });
     await p.goto('./');
 
@@ -242,13 +241,4 @@ test.describe('home landing behaviour', () => {
       .toBe(false);
   });
 
-  test('[04] counters settle on the final value in the HTML', async ({ page: p }) => {
-    await p.setViewportSize({ width: 1440, height: 900 });
-    await p.goto('./');
-    await p.locator('#privacy').scrollIntoViewIfNeeded();
-
-    await expect
-      .poll(async () => p.locator('[data-count-to="8"]').textContent())
-      .toBe('8');
-  });
 });

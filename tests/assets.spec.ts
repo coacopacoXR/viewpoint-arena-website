@@ -152,7 +152,7 @@ test('home: videos are muted, inline, looping, poster-backed and described', asy
     })),
   );
 
-  expect(videos.length).toBe(2);
+  expect(videos.length).toBe(1);
   for (const video of videos) {
     expect(video.muted, video.src).toBe(true);
     expect(video.playsinline, video.src).toBe(true);
