@@ -1,0 +1,148 @@
+---
+/**
+ * [02] ABOUT. Copy supplied by the author, verbatim (not in CONTENT.md).
+ */
+import Display from '../Display.astro';
+import SectionHead from '../SectionHead.astro';
+
+interface AboutLink {
+  label: string;
+  href: string;
+}
+
+const LINKS: AboutLink[] = [
+  {
+    label: 'Thesis:',
+    href: 'https://www.diva-portal.org/smash/record.jsf?pid=diva2%3A2056563',
+  },
+  {
+    label: 'Google Scholar:',
+    href: 'https://scholar.google.com/citations?user=h2on66wAAAAJ',
+  },
+  {
+    label: 'LinkedIn:',
+    href: 'https://www.linkedin.com/in/francisco-garcía-rivera',
+  },
+];
+---
+
+<section class="about section" id="about" aria-labelledby="about-title">
+  <div class="container">
+    <SectionHead label="[02] ABOUT" fig="FIG. 02" />
+
+    <div class="about__title breakout">
+      <Display as="h2" id="about-title" reveal="up" lines={['About']} />
+    </div>
+
+    <p class="about__lead t-lead" data-reveal="up">
+      Viewpoint Arena grew out of my doctoral research on how engineering teams review 3D
+      designs together.
+    </p>
+
+    <div class="about__grid grid">
+      <div class="about__body">
+        <p class="about__para" data-reveal="lines">
+          I'm Francisco García Rivera. I hold a PhD from the University of Skövde, where my
+          thesis studied collaborative technologies for engineering design reviews: how
+          people point at parts, share viewpoints, and reach decisions around a model when
+          some of them have CAD seats and some don't.
+        </p>
+
+        <p class="about__para" data-reveal="lines">
+          The same problems kept coming up. Reviews were slowed down by screen-sharing, by
+          stakeholders who couldn't open the files, and by confidential designs that
+          couldn't leave the company network. Viewpoint Arena is my attempt to put the
+          findings into a tool anyone can run: a shared room in the browser, live pointing
+          and comments on specific parts, and a default install that keeps everything on
+          your own machine.
+        </p>
+
+        <p class="about__para" data-reveal="lines">
+          I'm based in Malmö, Sweden, and build at the intersection of CAD-native 3D
+          tooling, real-time collaboration, and AI-assisted review.
+        </p>
+      </div>
+
+      <ul class="about__links">
+        {
+          LINKS.map((link) => (
+            <li>
+              {link.label} <a href={link.href} target="_blank" rel="noopener noreferrer">{link.href}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about__title {
+    padding-block-start: var(--sp-32);
+    min-width: 0;
+  }
+
+  .about__lead {
+    padding-block-start: var(--sp-32);
+    color: var(--ink-2);
+    max-width: var(--measure);
+  }
+
+  .about__grid {
+    padding-block-start: var(--sp-48);
+    align-items: start;
+    row-gap: var(--sp-48);
+  }
+
+  /* §1: body copy sits beside the big type, in the same slot as .why__body */
+  .about__body {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-24);
+    min-width: 0;
+  }
+
+  @media (min-width: 640px) {
+    .about__body {
+      grid-column: 2 / span 6;
+    }
+  }
+
+  .about__para {
+    color: var(--ink-2);
+    max-width: var(--measure);
+  }
+
+  /* the links sit under the body column, at the same width */
+  .about__links {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+  }
+
+  @media (min-width: 640px) {
+    .about__links {
+      grid-column: 2 / span 6;
+    }
+  }
+
+  /* hairline list, like a drawing's note column */
+  .about__links li {
+    padding-block: var(--sp-12);
+    border-block-start: var(--hairline) solid var(--rule);
+    color: var(--ink-2);
+  }
+
+  .about__links li:last-child {
+    border-block-end: var(--hairline) solid var(--rule);
+  }
+
+  /* these URLs are long: break them rather than scroll at 360px */
+  .about__links a {
+    overflow-wrap: anywhere;
+  }
+</style>

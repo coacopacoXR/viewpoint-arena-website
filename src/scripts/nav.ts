@@ -3,6 +3,8 @@
  *  - hides the pill on scroll down, shows it on scroll up (§4)
  *  - `Menu` opens a full-screen sheet: focus moves in, Tab is trapped inside,
  *    Esc closes and focus returns to the button that opened it
+ *  - a link inside the sheet closes it too, without pulling focus back to the
+ *    Menu button, so the browser is free to move to the target
  *  - the sheet is `inert` while closed, so nothing in it is focusable
  */
 
@@ -93,7 +95,12 @@ function openSheet(): void {
   (closeButton ?? focusables()[0])?.focus();
 }
 
-function closeSheet(): void {
+/**
+ * @param restoreFocus pass false when a link inside the sheet was activated:
+ * focus is then left where the click put it, so the browser can move to the
+ * link's target instead of jumping back to the Menu button.
+ */
+function closeSheet(restoreFocus = true): void {
   if (!sheet || !menuToggle || !sheetOpen) return;
   sheetOpen = false;
   sheet.setAttribute('data-open', 'false');
@@ -102,7 +109,7 @@ function closeSheet(): void {
   root().removeAttribute('data-nav-open');
   announceMenu(false);
   document.removeEventListener('keydown', onKeydown);
-  menuToggle.focus();
+  if (restoreFocus) menuToggle.focus();
 }
 
 function root(): HTMLElement {
@@ -114,7 +121,17 @@ menuToggle?.addEventListener('click', () => {
   else openSheet();
 });
 
-closeButton?.addEventListener('click', closeSheet);
+closeButton?.addEventListener('click', () => closeSheet());
+
+/* Any link inside the sheet closes it: on the home page `/#about` is a
+   same-page jump, and the sheet would otherwise stay open over the target.
+   Focus is not pulled back to the Menu button, so the browser can move to it. */
+sheet?.addEventListener('click', (event) => {
+  const { target } = event;
+  if (!(target instanceof Element)) return;
+  if (target.closest('a[href]') === null) return;
+  closeSheet(false);
+});
 
 /* the sheet must not stay open over the desktop pill */
 desktopQuery.addEventListener('change', (event) => {

@@ -1,15 +1,17 @@
 ---
 /**
  * `/` — the landing page (CONTENT.md, DESIGN.md §6).
- * Section order: HERO → [01] why → marquee → [02] how → [03] features →
- * [04] big assemblies → [05] nothing leaves → [06] install → [07] what's next
- * → closing CTA → footer. One component per section in components/landing/.
+ * Section order: HERO → [01] why → [02] about → marquee → [03] how →
+ * [04] features → [05] big assemblies → [06] nothing leaves → [07] install →
+ * [08] what's next → closing CTA → footer. One component per section in
+ * components/landing/.
  *
  * The page owns the figure sequence: one counter, handed to the sections in the
  * order they appear below, so captions read `FIG. 00`, `FIG. 01`, … down the
  * document (src/lib/figures.ts).
  */
 import Base from '../layouts/Base.astro';
+import About from '../components/landing/About.astro';
 import Assemblies from '../components/landing/Assemblies.astro';
 import Closing from '../components/landing/Closing.astro';
 import Features from '../components/landing/Features.astro';
@@ -30,6 +32,7 @@ const figs = figureCounter();
   <SectionIndex />
   <Hero figs={figs} />
   <Why />
+  <About />
   <MarqueeBand />
   <How figs={figs} />
   <Features figs={figs} />

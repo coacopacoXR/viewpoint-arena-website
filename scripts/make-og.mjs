@@ -41,7 +41,7 @@ const GRID = 'rgb(0 68 170 / .06)';
 
 /* Copy, verbatim from src/lib/site.ts and the landing hero. */
 const EYEBROW = 'SELF-HOSTED 3D DESIGN REVIEW · 0.1.0 PREVIEW';
-const HEADLINE = ['REVIEW THE MODEL.', 'NOT THE SCREENSHOT.'];
+const HEADLINE = ['REVIEW THE MODEL.', 'NOT A SCREEN SHARE.'];
 const FOOTER_LINE = '0.1.0 preview · Apache-2.0 · Self-hosted, on purpose.';
 
 const kb = (bytes) => `${(bytes / 1024).toFixed(0)} KB`;

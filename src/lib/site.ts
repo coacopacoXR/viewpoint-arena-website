@@ -18,7 +18,7 @@ export const THEME_KEY = 'va-theme';
 
 /** META — site-wide defaults */
 export const META = {
-  title: 'Viewpoint Arena — review the model, not the screenshot',
+  title: 'Viewpoint Arena — review the model, not a screen share',
   description:
     "A self-hosted room where a small team reviews a 3D model together. Point at parts, follow a view, get risks and actions from the meeting. Runs on one machine.",
 } as const;
@@ -42,6 +42,7 @@ export const PAGE_META = {
 
 /** NAV */
 export const NAV_LINKS = [
+  { label: 'About', href: '/#about' },
   { label: 'How it works', href: '/how-it-works' },
   { label: 'Install', href: '/install' },
   { label: 'Changelog', href: '/changelog' },
