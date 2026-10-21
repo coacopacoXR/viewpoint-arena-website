@@ -11,7 +11,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [site/astro]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
