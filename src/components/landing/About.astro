@@ -4,6 +4,7 @@
  */
 import Display from '../Display.astro';
 import SectionHead from '../SectionHead.astro';
+import { withBase } from '../../lib/links';
 
 interface AboutLink {
   label: string;
@@ -24,6 +25,15 @@ const LINKS: AboutLink[] = [
     href: 'https://www.linkedin.com/in/francisco-garcía-rivera',
   },
 ];
+
+/* The author's video. A local poster stands in until it is clicked, so nothing
+   loads from YouTube unless the visitor asks for it; with JS off it is a plain
+   link to the video. */
+const VIDEO_ID = 'rhwUCv2HzrQ';
+const VIDEO_URL = `https://youtu.be/${VIDEO_ID}`;
+const posterSrcset = [640, 1280]
+  .map((w) => `${withBase(`/assets/about-video-poster-${w}.webp`)} ${w}w`)
+  .join(', ');
 ---
 
 <section class="about section" id="about" aria-labelledby="about-title">
@@ -63,6 +73,32 @@ const LINKS: AboutLink[] = [
         </p>
       </div>
 
+      <figure class="about__video" data-reveal="up">
+        <a
+          class="about__play u-nolink"
+          href={VIDEO_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-yt={VIDEO_ID}
+          aria-label="Play the video: Francisco introduces Viewpoint Arena (YouTube)"
+        >
+          <img
+            src={withBase('/assets/about-video-poster-1280.webp')}
+            srcset={posterSrcset}
+            sizes="(min-width: 1024px) 33vw, 100vw"
+            alt=""
+            width="1280"
+            height="720"
+            loading="lazy"
+            decoding="async"
+          />
+          <span class="about__playbtn" aria-hidden="true">▶ Play</span>
+        </a>
+        <figcaption class="about__caption">
+          In my own words: why I built Viewpoint Arena. Plays from YouTube.
+        </figcaption>
+      </figure>
+
       <ul class="about__links">
         {
           LINKS.map((link) => (
@@ -75,6 +111,23 @@ const LINKS: AboutLink[] = [
     </div>
   </div>
 </section>
+
+<script>
+  /* Swap the poster for the player only on click (youtube-nocookie). */
+  document.querySelectorAll<HTMLAnchorElement>('[data-yt]').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://www.youtube-nocookie.com/embed/${link.dataset.yt}?autoplay=1&rel=0`;
+      iframe.title = 'Viewpoint Arena, introduced by Francisco García Rivera';
+      iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      iframe.allowFullscreen = true;
+      iframe.className = 'about__iframe';
+      link.replaceWith(iframe);
+      iframe.focus();
+    });
+  });
+</script>
 
 <style>
   .about__title {
@@ -144,5 +197,82 @@ const LINKS: AboutLink[] = [
   /* these URLs are long: break them rather than scroll at 360px */
   .about__links a {
     overflow-wrap: anywhere;
+  }
+
+  /* the video sits in the empty right-hand columns beside the bio on desktop,
+     and between the bio and the links below that */
+  .about__video {
+    grid-column: 1 / -1;
+    margin: 0;
+    min-width: 0;
+  }
+
+  @media (min-width: 640px) {
+    .about__video {
+      grid-column: 2 / span 6;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .about__video {
+      grid-column: 9 / span 4;
+      grid-row: 1 / span 2;
+      position: sticky;
+      top: var(--sp-112);
+    }
+  }
+
+  .about__play,
+  .about__video :global(.about__iframe) {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: var(--hairline) solid var(--rule);
+    border-radius: var(--r-box);
+    overflow: hidden;
+    background-color: var(--paper-2);
+  }
+
+  .about__play img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+
+  .about__play:hover img {
+    transform: scale(1.02);
+  }
+
+  .about__playbtn {
+    position: absolute;
+    inset-inline-start: var(--sp-16);
+    inset-block-end: var(--sp-16);
+    padding: var(--sp-8) var(--sp-16);
+    border-radius: var(--r-box);
+    background-color: var(--signal);
+    color: var(--on-signal);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    text-transform: uppercase;
+  }
+
+  .about__caption {
+    padding-block-start: var(--sp-12);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: var(--t-mono-wght);
+    letter-spacing: var(--t-mono-ls);
+    line-height: var(--t-mono-lh);
+    color: var(--ink-2);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .about__play img {
+      transition: none;
+    }
   }
 </style>
